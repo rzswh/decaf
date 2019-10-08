@@ -126,6 +126,10 @@ public interface Visitor<C> {
         visitOthers(that, ctx);
     }
 
+    default void visitLambda(Tree.Lambda that, C ctx) {
+        visitOthers(that, ctx);
+    }
+
     default void visitThis(Tree.This that, C ctx) {
         visitOthers(that, ctx);
     }

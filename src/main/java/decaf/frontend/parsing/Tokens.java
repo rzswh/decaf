@@ -36,7 +36,9 @@ public interface Tokens {
     int EQUAL = 29;
     int NOT_EQUAL = 30;
     int ABSTRACT = 31;
-    int VAR = 32;
+    int VAR = 48;
+    int DOUBLE_ARROW = 49;
+    int FUN = 50;
 
     // MUST use ASCII code to encode a single-character token.
     // '!' (code=33)

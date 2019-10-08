@@ -24,7 +24,7 @@ public abstract class Tree {
         TOP_LEVEL, CLASS_DEF, VAR_DEF, METHOD_DEF,
         T_INT, T_BOOL, T_STRING, T_VOID, T_CLASS, T_ARRAY, T_LAMBDA,
         LOCAL_VAR_DEF, BLOCK, ASSIGN, EXPR_EVAL, SKIP, IF, WHILE, FOR, BREAK, RETURN, PRINT,
-        INT_LIT, BOOL_LIT, STRING_LIT, NULL_LIT, VAR_SEL, INDEX_SEL, CALL,
+        INT_LIT, BOOL_LIT, STRING_LIT, NULL_LIT, VAR_SEL, INDEX_SEL, CALL, LAMBDA,
         THIS, UNARY_EXPR, BINARY_EXPR, READ_INT, READ_LINE, NEW_CLASS, NEW_ARRAY, CLASS_TEST, CLASS_CAST
     }
 
@@ -1570,6 +1570,68 @@ public abstract class Tree {
         @Override
         public <C> void accept(Visitor<C> v, C ctx) {
             v.visitCall(this, ctx);
+        }
+    }
+
+    /**
+     * Lambda expression.
+     */
+    public abstract static class Lambda extends Expr {
+
+        public List<LocalVarDef> varList;
+
+        public Lambda(Pos pos) {
+            super(Kind.LAMBDA, "Lambda", pos);
+        }
+
+        @Override
+        public int treeArity() {
+            return 2;
+        }
+
+        @Override
+        public <C> void accept(Visitor<C> visitor, C ctx) {
+            visitor.visitLambda(this, ctx);
+        }
+    }
+
+    public static class LambdaExpr extends Lambda {
+
+        public Expr expr;
+
+        public LambdaExpr(List<LocalVarDef> varList, Expr expr, Pos pos) {
+            super(pos);
+            this.varList = varList;
+            this.expr = expr;
+        }
+
+        @Override
+        public Object treeElementAt(int index) {
+            return switch (index) {
+                case 0 -> varList;
+                case 1 -> expr;
+                default -> throw new IndexOutOfBoundsException(index);
+            };
+        }
+    }
+
+    public static class LambdaBlock extends Lambda {
+
+        public Block block;
+
+        public LambdaBlock(List<LocalVarDef> varList, Block block, Pos pos) {
+            super(pos);
+            this.varList = varList;
+            this.block = block;
+        }
+
+        @Override
+        public Object treeElementAt(int index) {
+            return switch (index) {
+                case 0 -> varList;
+                case 1 -> block;
+                default -> throw new IndexOutOfBoundsException(index);
+            };
         }
     }
 
