@@ -19,7 +19,7 @@ import java.util.Optional;
 %token NULL         EXTENDS     THIS        WHILE       FOR
 %token IF           ELSE        RETURN      BREAK       NEW
 %token PRINT        READ_INTEGER            READ_LINE
-%token BOOL_LIT     INT_LIT     STRING_LIT  ABSTRACT
+%token BOOL_LIT     INT_LIT     STRING_LIT  ABSTRACT    VAR
 %token IDENTIFIER   AND         OR          STATIC      INSTANCE_OF
 %token LESS_EQUAL   GREATER_EQUAL           EQUAL       NOT_EQUAL
 %token '+'  '-'  '*'  '/'  '%'  '='  '>'  '<'  '.'
@@ -246,6 +246,10 @@ SimpleStmt      :   Var Initializer
                 |   /* empty */
                     {
                         $$ = svStmt(null);
+                    }
+                |   VAR Id '=' Expr
+                    {
+                        $$ = svStmt(new LocalVarDef(null, $2.id, $3.pos, Optional.ofNullable($4.expr), $2.pos));
                     }
                 ;
 

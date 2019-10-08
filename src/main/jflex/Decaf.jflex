@@ -51,6 +51,7 @@ BAD_ESC             = "\\"[^nrt\"\\]
 "int"               { return keyword(Tokens.INT);          }
 "bool"              { return keyword(Tokens.BOOL);         }
 "string"            { return keyword(Tokens.STRING);       }
+"var"               { return keyword(Tokens.VAR);          }
 "new"               { return keyword(Tokens.NEW);          }
 "null"              { return keyword(Tokens.NULL);         }
 "class"             { return keyword(Tokens.CLASS);        }
@@ -66,7 +67,7 @@ BAD_ESC             = "\\"[^nrt\"\\]
 "ReadInteger"       { return keyword(Tokens.READ_INTEGER); }
 "ReadLine"          { return keyword(Tokens.READ_LINE);    }
 "static"            { return keyword(Tokens.STATIC);       }
-"abstract"          { return keyword(Tokens.ABSTRACT);       }
+"abstract"          { return keyword(Tokens.ABSTRACT);     }
 "instanceof"        { return keyword(Tokens.INSTANCE_OF);  }
 
     // operators, with more than one character

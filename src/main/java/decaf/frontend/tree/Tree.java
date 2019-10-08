@@ -194,7 +194,7 @@ public abstract class Tree {
         public Id id;
         public TypeLit returnType;
         public List<LocalVarDef> params;
-        public Block body;
+        public Block body; // nullable
         // For convenience
         public String name;
         // For type check
@@ -449,7 +449,7 @@ public abstract class Tree {
      */
     public static class LocalVarDef extends Stmt {
         // Tree elements
-        public TypeLit typeLit;
+        public TypeLit typeLit; // nullable
         public Id id;
         public Pos assignPos;
         public Optional<Expr> initVal;
@@ -476,7 +476,7 @@ public abstract class Tree {
         @Override
         public Object treeElementAt(int index) {
             return switch (index) {
-                case 0 -> typeLit;
+                case 0 -> Optional.ofNullable(typeLit);
                 case 1 -> id;
                 case 2 -> initVal;
                 default -> throw new IndexOutOfBoundsException(index);
