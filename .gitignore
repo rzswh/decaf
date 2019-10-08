@@ -2,3 +2,8 @@
 .idea/
 .vscode/
 .settings/
+.classpath
+.project
+TestCases/
+build/
+bin/
