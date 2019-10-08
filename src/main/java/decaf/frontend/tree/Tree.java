@@ -22,7 +22,7 @@ import java.util.Optional;
 public abstract class Tree {
     public enum Kind {
         TOP_LEVEL, CLASS_DEF, VAR_DEF, METHOD_DEF,
-        T_INT, T_BOOL, T_STRING, T_VOID, T_CLASS, T_ARRAY,
+        T_INT, T_BOOL, T_STRING, T_VOID, T_CLASS, T_ARRAY, T_LAMBDA,
         LOCAL_VAR_DEF, BLOCK, ASSIGN, EXPR_EVAL, SKIP, IF, WHILE, FOR, BREAK, RETURN, PRINT,
         INT_LIT, BOOL_LIT, STRING_LIT, NULL_LIT, VAR_SEL, INDEX_SEL, CALL,
         THIS, UNARY_EXPR, BINARY_EXPR, READ_INT, READ_LINE, NEW_CLASS, NEW_ARRAY, CLASS_TEST, CLASS_CAST
@@ -418,6 +418,40 @@ public abstract class Tree {
         @Override
         public <C> void accept(Visitor<C> v, C ctx) {
             v.visitTArray(this, ctx);
+        }
+    }
+
+    /**
+     * Lambda type.
+     */
+    public static class TLambda extends TypeLit {
+        // Tree element
+        public TypeLit returnType;
+        public List<TypeLit> argsType;
+
+        public TLambda(TypeLit returnType, List<TypeLit> argsType, Pos pos) {
+            super(Kind.T_LAMBDA, "TLambda", pos);
+            this.returnType = returnType;
+            this.argsType = argsType;
+        }
+
+        @Override
+        public Object treeElementAt(int index) {
+            return switch (index) {
+                case 0 -> returnType;
+                case 1 -> argsType;
+                default -> throw new IndexOutOfBoundsException(index);
+            };
+        }
+
+        @Override
+        public int treeArity() {
+            return 2;
+        }
+
+        @Override
+        public <C> void accept(Visitor<C> v, C ctx) {
+            v.visitTLambda(this, ctx);
         }
     }
 
