@@ -201,9 +201,11 @@ public abstract class Tree {
         public FunType type;
         public MethodSymbol symbol;
 
-        public MethodDef(boolean isStatic, Id id, TypeLit returnType, List<LocalVarDef> params, Block body, Pos pos) {
+        public MethodDef(boolean isAbstract, boolean isStatic, Id id, TypeLit returnType, List<LocalVarDef> params, Block body, Pos pos) {
             super(Kind.METHOD_DEF, "MethodDef", pos);
-            this.modifiers = isStatic ? new Modifiers(Modifiers.STATIC, pos) : new Modifiers();
+            this.modifiers = isStatic || isAbstract ?
+                    new Modifiers((isStatic ? Modifiers.STATIC : 0) | (isAbstract ? Modifiers.ABSTRACT : 0), pos)
+                    : new Modifiers();
             this.id = id;
             this.returnType = returnType;
             this.params = params;
@@ -222,7 +224,7 @@ public abstract class Tree {
                 case 1 -> id;
                 case 2 -> returnType;
                 case 3 -> params;
-                case 4 -> body;
+                case 4 -> Optional.ofNullable(body);
                 default -> throw new IndexOutOfBoundsException(index);
             };
         }
@@ -507,6 +509,11 @@ public abstract class Tree {
         public Block(List<Stmt> stmts, Pos pos) {
             super(Kind.BLOCK, "Block", pos);
             this.stmts = stmts;
+        }
+
+        public Block() {
+            super(Kind.BLOCK, "Block", Pos.NoPos);
+            this.stmts = null;
         }
 
         @Override
@@ -1575,8 +1582,8 @@ public abstract class Tree {
             this.code = code;
             this.pos = pos;
             flags = new ArrayList<>();
-            if (isStatic()) flags.add("STATIC");
             if (isAbstract()) flags.add("ABSTRACT");
+            if (isStatic()) flags.add("STATIC");
         }
 
         public Modifiers() {
