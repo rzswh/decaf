@@ -66,6 +66,7 @@ BAD_ESC             = "\\"[^nrt\"\\]
 "ReadInteger"       { return keyword(Tokens.READ_INTEGER); }
 "ReadLine"          { return keyword(Tokens.READ_LINE);    }
 "static"            { return keyword(Tokens.STATIC);       }
+"abstract"          { return keyword(Tokens.ABSTRACT);       }
 "instanceof"        { return keyword(Tokens.INSTANCE_OF);  }
 
     // operators, with more than one character

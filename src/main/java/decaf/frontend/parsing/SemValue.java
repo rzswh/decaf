@@ -120,6 +120,7 @@ class SemValue {
                 case Tokens.VOID -> "keyword  : void";
                 case Tokens.WHILE -> "keyword  : while";
                 case Tokens.STATIC -> "keyword : static";
+                case Tokens.ABSTRACT -> "keyword : abstract";
                 case Tokens.INT_LIT -> "int literal : " + intVal;
                 case Tokens.BOOL_LIT -> "bool literal : " + boolVal;
                 case Tokens.STRING_LIT -> "string literal : " + StringUtils.quote(strVal);
