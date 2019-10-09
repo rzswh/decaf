@@ -319,10 +319,6 @@ Expr            :   Literal
                     {
                         $$ = svExpr($1.lValue);
                     }
-                |   Receiver Id '(' ExprList ')'
-                    {
-                        $$ = svExpr(new Call(Optional.ofNullable($1.expr), $2.id, $4.exprList, $3.pos));
-                    }
                 |   Expr '+' Expr
                     {
                         $$ = svExpr(new Binary(BinaryOp.ADD, $1.expr, $3.expr, $2.pos));
@@ -418,6 +414,14 @@ Expr            :   Literal
                 |   FUN '(' VarList ')' Block
                     {
                         $$ = svExpr(new LambdaBlock($3.varList, $5.block, $1.pos));
+                    }
+                |   Receiver Id
+                    {
+                        $$ = svExpr(new VarSel(Optional.ofNullable($1.expr), $2.id, $2.pos));
+                    }
+                |   Expr '(' ExprList ')'
+                    {
+                        $$ = svExpr(new Call($1.expr, $3.exprList, $2.pos));
                     }
                 ;
 

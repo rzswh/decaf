@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Optional.empty;
+
 /**
  * All kinds of tree node in the abstract syntax tree.
  *
@@ -147,7 +149,7 @@ public abstract class Tree {
         public TypeLit typeLit;
         public Id id;
         // For now, member variable must not have initial values, but we need to print this
-        public final Optional<Expr> initVal = Optional.empty();
+        public final Optional<Expr> initVal = empty();
         // For convenience
         public String name;
         // For type check
@@ -504,7 +506,7 @@ public abstract class Tree {
         }
 
         public LocalVarDef(TypeLit typeLit, Id id, Pos pos) {
-            this(typeLit, id, Pos.NoPos, Optional.empty(), pos);
+            this(typeLit, id, Pos.NoPos, empty(), pos);
         }
 
         @Override
@@ -1087,7 +1089,7 @@ public abstract class Tree {
         }
 
         public VarSel(Id variable, Pos pos) {
-            this(Optional.empty(), variable, pos);
+            this(empty(), variable, pos);
         }
 
         /**
@@ -1518,9 +1520,9 @@ public abstract class Tree {
      */
     public static class Call extends Expr {
         // Tree elements
-        public Optional<Expr> receiver;
-        public Id method;
+        public Expr expr;
         public List<Expr> args;
+        public Optional<Expr> receiver;
         //
         public String methodName;
         // For type check
@@ -1528,15 +1530,18 @@ public abstract class Tree {
         public boolean isArrayLength = false;
 
         public Call(Optional<Expr> receiver, Id method, List<Expr> args, Pos pos) {
+            this(new VarSel(receiver, method, Pos.NoPos), args, pos);
+        }
+        public Call(Expr varSel, List<Expr> args, Pos pos) {
             super(Kind.CALL, "Call", pos);
-            this.receiver = receiver;
-            this.method = method;
+            this.expr = varSel;
             this.args = args;
-            this.methodName = method.name;
+            this.receiver = varSel instanceof VarSel ? ((VarSel)varSel).receiver : Optional.empty();
+            this.methodName = varSel instanceof VarSel ? ((VarSel)varSel).variable.name : "Lambda$";
         }
 
         public Call(Id method, List<Expr> args, Pos pos) {
-            this(Optional.empty(), method, args, pos);
+            this(empty(), method, args, pos);
         }
 
         public Call(Expr receiver, Id method, List<Expr> args, Pos pos) {
@@ -1555,16 +1560,15 @@ public abstract class Tree {
         @Override
         public Object treeElementAt(int index) {
             return switch (index) {
-                case 0 -> receiver;
-                case 1 -> method;
-                case 2 -> args;
+                case 0 -> expr;
+                case 1 -> args;
                 default -> throw new IndexOutOfBoundsException(index);
             };
         }
 
         @Override
         public int treeArity() {
-            return 3;
+            return 2;
         }
 
         @Override
