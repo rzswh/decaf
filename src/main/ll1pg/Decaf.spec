@@ -332,15 +332,6 @@ ExprOpt         :   Expr
                 ;
 
 
-OpLambdaCall    :   '(' ExprList ')'
-                    {
-                        $$ = new SemValue();
-                        $$.pos = $1.pos;
-                        $$.code = 0; // Lambda
-                        $$.exprList = $2.exprList;
-                    }
-                ;
-
 // Operators
 
 Op1             :   OR
