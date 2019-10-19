@@ -15,11 +15,12 @@ VOID         BOOL        INT         STRING      CLASS
 NULL         EXTENDS     THIS        WHILE       FOR
 IF           ELSE        RETURN      BREAK       NEW
 PRINT        READ_INTEGER            READ_LINE
-BOOL_LIT     INT_LIT     STRING_LIT
+BOOL_LIT     INT_LIT     STRING_LIT  ABSTRACT
 IDENTIFIER   AND         OR          STATIC      INSTANCE_OF
 LESS_EQUAL   GREATER_EQUAL           EQUAL       NOT_EQUAL
 '+'  '-'  '*'  '/'  '%'  '='  '>'  '<'  '.'
 ','  ';'  '!'  '('  ')'  '['  ']'  '{'  '}'
+DOUBLE_ARROW FUN         VAR
 
 %%
 
@@ -47,6 +48,10 @@ ClassDef        :   CLASS Id ExtendsClause '{' FieldList '}'
                     {
                         $$ = svClass(new ClassDef(false, $2.id, Optional.ofNullable($3.id), $5.fieldList, $1.pos));
                     }
+                |   ABSTRACT CLASS Id ExtendsClause '{' FieldList '}'
+                    {
+                        $$ = svClass(new ClassDef(true, $3.id, Optional.ofNullable($4.id), $6.fieldList, $2.pos));
+                    }
                 ;
 
 ExtendsClause   :   EXTENDS Id
@@ -59,7 +64,12 @@ ExtendsClause   :   EXTENDS Id
                     }
                 ;
 
-FieldList       :   STATIC Type Id '(' VarList ')' Block FieldList
+FieldList       :   ABSTRACT Type Id '(' VarList ')' ';' FieldList
+                    {
+                        $$ = $8;
+                        $$.fieldList.add(0, new MethodDef(true, false, $3.id, $2.type, $5.varList, null, $3.pos));
+                    }
+                |   STATIC Type Id '(' VarList ')' Block FieldList
                     {
                         $$ = $8;
                         $$.fieldList.add(0, new MethodDef(false, true, $3.id, $2.type, $5.varList, $7.block, $3.pos));
@@ -143,24 +153,64 @@ AtomType        :   INT
                     }
                 ;
 
-Type            :   AtomType ArrayType
+Type            :   AtomType TypeFollow
                     {
                         $$ = $1;
-                        for (int i = 0; i < $2.intVal; i++) {
-                            $$.type = new TArray($$.type, $1.type.pos);
+                        for (SemValue v: $2.thunkList) {
+                            if (v.intVal == 1)
+                                $$.type = new TArray($$.type, $1.type.pos);
+                            else if (v.intVal == 2)
+                                $$.type = new TLambda($$.type, v.typeList, $1.type.pos);
+                            else {
+                                // v.intVal == 0
+                            }
                         }
                     }
                 ;
 
-ArrayType       :   '[' ']' ArrayType
+TypeList        :   Type TypeList1
+                    {
+                        $$ = $2;
+                        $2.typeList.add(0, $1.type);
+                    }
+                |   /* empty */
+                    {
+                        $$ = svTypes();
+                    }
+                ;
+
+TypeList1       :   ',' Type TypeList1
                     {
                         $$ = $3;
-                        $$.intVal++;
+                        $3.typeList.add(0, $2.type);
+                    }
+                |   /* empty */
+                    {
+                        $$ = svTypes();
+                    }
+                ;
+
+TypeFollow       :   '[' ']' TypeFollow
+                    {
+                        var sv = new SemValue();
+                        sv.intVal = 1;
+
+                        $$ = $3;
+                        $3.thunkList.add(0, sv);
+                    }
+                |   '(' TypeList ')' TypeFollow
+                    {
+                        var sv = new SemValue();
+                        sv.intVal = 2;
+                        sv.typeList = $2.typeList;
+
+                        $$ = $4;
+                        $4.thunkList.add(0, sv);
                     }
                 |   /* empty */
                     {
                         $$ = new SemValue();
-                        $$.intVal = 0; // counter
+                        $$.thunkList = new ArrayList<>();
                     }
                 ;
 
@@ -244,6 +294,10 @@ SimpleStmt      :   Var Initializer
                     {
                         $$ = svStmt(null);
                     }
+                |   VAR Id '=' Expr
+                    {
+                        $$ = svStmt(new LocalVarDef(null, $2.id, $3.pos, Optional.ofNullable($4.expr), $2.pos));
+                    }
                 ;
 
 Initializer     :   '=' Expr
@@ -274,6 +328,16 @@ ExprOpt         :   Expr
                 |   /* empty */
                     {
                         $$ = svExpr(null);
+                    }
+                ;
+
+
+OpLambdaCall    :   '(' ExprList ')'
+                    {
+                        $$ = new SemValue();
+                        $$.pos = $1.pos;
+                        $$.code = 0; // Lambda
+                        $$.exprList = $2.exprList;
                     }
                 ;
 
@@ -389,11 +453,38 @@ Expr            :   Expr1
                     {
                         $$ = $1;
                     }
+                |   ExprLambda
+                    {
+                        $$ = $1;
+                    }
                 ;
 
 Expr1           :   Expr2 ExprT1
                     {
                         $$ = buildBinaryExpr($1, $2.thunkList);
+                    }
+                ;
+
+ExprLambda      :   FUN '(' VarList ')' LambdaBody
+                    {
+                        if ($5.expr != null)
+                            $$ = svExpr(new LambdaExpr($3.varList, $5.expr, $1.pos));
+                        else if ($5.block != null)
+                            $$ = svExpr(new LambdaBlock($3.varList, $5.block, $1.pos));
+                        else
+                            $$ = svExpr(null);
+                    }
+                ;
+
+LambdaBody      :   DOUBLE_ARROW Expr
+                    {
+                        $$ = new SemValue();
+                        $$.expr = $2.expr;
+                    }
+                |   Block
+                    {
+                        $$ = new SemValue();
+                        $$.block = $1.block;
                     }
                 ;
 
@@ -546,7 +637,7 @@ Expr8           :   Expr9 ExprT8
                             if (sv.expr != null) {
                                 $$ = svExpr(new IndexSel($$.expr, sv.expr, sv.pos));
                             } else if (sv.exprList != null) {
-                                $$ = svExpr(new Call($$.expr, sv.id, sv.exprList, sv.pos));
+                                $$ = svExpr(new Call($$.expr, sv.exprList, sv.pos));
                             } else {
                                 $$ = svExpr(new VarSel($$.expr, sv.id, sv.pos));
                             }
@@ -564,14 +655,21 @@ ExprT8          :   '[' Expr ']' ExprT8
                         $$ = $4;
                         $$.thunkList.add(0, sv);
                     }
-                |   '.' Id ExprListOpt ExprT8
+                |   '.' Id ExprT8
                     {
                         var sv = new SemValue();
                         sv.id = $2.id;
                         sv.pos = $2.pos;
-                        if ($3.exprList != null) {
-                            sv.exprList = $3.exprList;
-                            sv.pos = $3.pos;
+
+                        $$ = $3;
+                        $$.thunkList.add(0, sv);
+                    }
+                |   '(' ExprList ')' ExprT8
+                    {
+                        var sv = new SemValue();
+                        if ($2.exprList != null) {
+                            sv.exprList = $2.exprList;
+                            sv.pos = $1.pos;
                         }
 
                         $$ = $4;
@@ -581,17 +679,6 @@ ExprT8          :   '[' Expr ']' ExprT8
                     {
                         $$ = new SemValue();
                         $$.thunkList = new ArrayList<>();
-                    }
-                ;
-
-ExprListOpt     :   '(' ExprList ')'
-                    {
-                        $$ = $2;
-                        $$.pos = $1.pos;
-                    }
-                |   /* empty */
-                    {
-                        $$ = new SemValue();
                     }
                 ;
 
@@ -627,13 +714,9 @@ Expr9           :   Literal
                     {
                         $$ = $2;
                     }
-                |   Id ExprListOpt
+                |   Id
                     {
-                        if ($2.exprList != null) {
-                            $$ = svExpr(new Call($1.id, $2.exprList, $2.pos));
-                        } else {
-                            $$ = svExpr(new VarSel($1.id, $1.pos));
-                        }
+                        $$ = svExpr(new VarSel($1.id, $1.pos));
                     }
                 ;
 

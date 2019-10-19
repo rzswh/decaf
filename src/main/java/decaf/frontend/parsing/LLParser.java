@@ -73,6 +73,7 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
                 case Tokens.BOOL_LIT -> BOOL_LIT;
                 case Tokens.INT_LIT -> INT_LIT;
                 case Tokens.STRING_LIT -> STRING_LIT;
+                case Tokens.ABSTRACT -> ABSTRACT;
                 case Tokens.IDENTIFIER -> IDENTIFIER;
                 case Tokens.AND -> AND;
                 case Tokens.OR -> OR;
@@ -82,6 +83,9 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
                 case Tokens.GREATER_EQUAL -> GREATER_EQUAL;
                 case Tokens.EQUAL -> EQUAL;
                 case Tokens.NOT_EQUAL -> NOT_EQUAL;
+                case Tokens.DOUBLE_ARROW -> DOUBLE_ARROW;
+                case Tokens.FUN -> FUN;
+                case Tokens.VAR -> VAR;
                 default -> code; // single-character, use their ASCII code!
             };
         }
