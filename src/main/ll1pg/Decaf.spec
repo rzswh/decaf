@@ -158,9 +158,9 @@ Type            :   AtomType TypeFollow
                         $$ = $1;
                         for (SemValue v: $2.thunkList) {
                             if (v.intVal == 1)
-                                $$.type = new TArray($$.type, $1.type.pos);
+                                $$.type = new TArray($$.type, $1.pos);
                             else if (v.intVal == 2)
-                                $$.type = new TLambda($$.type, v.typeList, $1.type.pos);
+                                $$.type = new TLambda($$.type, v.typeList, $1.pos);
                             else {
                                 // v.intVal == 0
                             }
