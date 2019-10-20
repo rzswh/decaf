@@ -2,6 +2,7 @@ package decaf.frontend.parsing;
 
 import decaf.driver.Config;
 import decaf.driver.Phase;
+import decaf.driver.error.DecafError;
 import decaf.frontend.tree.Tree;
 import decaf.lowlevel.log.IndentPrinter;
 import decaf.printing.PrettyTree;
@@ -37,6 +38,18 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
             printer.pretty(tree);
             printer.flush();
         }
+    }
+
+    @Override
+    public void issue(DecafError error) {
+        if (!errors.isEmpty()) {
+            var last = errors.get(errors.size() - 1);
+            if (error.toString().equals(last.toString())) { // ignore
+                return;
+            }
+        }
+
+        super.issue(error);
     }
 
     private class Parser extends decaf.frontend.parsing.LLTable {
@@ -103,45 +116,42 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
             TreeSet<Integer> end = new TreeSet<>(follow);
             end.addAll(followSet(symbol));   // modified!
             var result = query(symbol, token); // get production by lookahead symbol
-            while (true) {
-                if (result != null) {           // correct syntax
-                    var actionId = result.getKey(); // get user-defined action
+            if (result == null) {   //  error revocery
+                // print error info
+                yyerror("syntax error");
 
-                    var right = result.getValue(); // right-hand side of production
-                    var length = right.size();
-                    var params = new SemValue[length + 1];
-                    boolean succ = true;
-
-                    for (var i = 0; i < length; i++) { // parse right-hand side symbols one by one
-                        var term = right.get(i);
-                        params[i + 1] = isNonTerminal(term)
-                                ? parseSymbol(term, end) // for non terminals: recursively parse it
-                                : matchToken(term) // for terminals: match token
-                        ;
-                        if (params[i+1] == null)
-                            succ = false;
-                    }
-
-                    if (succ)
-                        act(actionId, params); // do user-defined action
-                    else
-                        params[0] = null;   // expression parsing error
-                    return params[0];
-                } else // error revocery
-                {
-                    // print error info
-                    yyerror("syntax error");
-
-                    while (query(symbol, token) == null && !end.contains(token)) {
-                        nextToken();
-                    }
-                    result = query(symbol, token);
-                    if (result == null) {
-                        // terminate analysis of SYMBOL
-                        return null;
-                    }
+                while (query(symbol, token) == null && !end.contains(token)) {
+                    nextToken();
                 }
+                result = query(symbol, token);
+                if (result == null) {  // terminate analysis of SYMBOL
+                    return null;
+                }
+                // now result != null
             }
+            // correct syntax
+            var actionId = result.getKey(); // get user-defined action
+
+            var right = result.getValue(); // right-hand side of production
+            var length = right.size();
+            var params = new SemValue[length + 1];
+            boolean succ = true;
+
+            for (var i = 0; i < length; i++) { // parse right-hand side symbols one by one
+                var term = right.get(i);
+                params[i + 1] = isNonTerminal(term)
+                        ? parseSymbol(term, end) // for non terminals: recursively parse it
+                        : matchToken(term) // for terminals: match token
+                ;
+                if (params[i+1] == null)
+                    succ = false;
+            }
+
+            if (succ)
+                act(actionId, params); // do user-defined action
+            else
+                params[0] = null;   // expression parsing error
+            return params[0];
         }
 
         /**
