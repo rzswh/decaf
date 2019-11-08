@@ -3,9 +3,11 @@ package decaf.frontend.symbol;
 import decaf.frontend.scope.ClassScope;
 import decaf.frontend.scope.GlobalScope;
 import decaf.frontend.tree.Pos;
+import decaf.frontend.tree.Tree;
 import decaf.frontend.type.ClassType;
 import decaf.lowlevel.tac.ClassInfo;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.TreeSet;
 
@@ -22,20 +24,24 @@ public final class ClassSymbol extends Symbol {
      * Associated class scope of this class.
      */
     public final ClassScope scope;
+    public ArrayList<MethodSymbol> abstractMethods;
+    public final Tree.Modifiers modifiers;
 
-    public ClassSymbol(String name, ClassType type, ClassScope scope, Pos pos) {
+    public ClassSymbol(String name, ClassType type, ClassScope scope, Pos pos, Tree.Modifiers modifiers) {
         super(name, type, pos);
         this.parentSymbol = Optional.empty();
         this.scope = scope;
         this.type = type;
+        this.modifiers = modifiers;
         scope.setOwner(this);
     }
 
-    public ClassSymbol(String name, ClassSymbol parentSymbol, ClassType type, ClassScope scope, Pos pos) {
+    public ClassSymbol(String name, ClassSymbol parentSymbol, ClassType type, ClassScope scope, Pos pos, Tree.Modifiers modifiers) {
         super(name, type, pos);
         this.parentSymbol = Optional.of(parentSymbol);
         this.scope = scope;
         this.type = type;
+        this.modifiers = modifiers;
         scope.setOwner(this);
     }
 
@@ -67,7 +73,8 @@ public final class ClassSymbol extends Symbol {
 
     @Override
     protected String str() {
-        return "class " + name + parentSymbol.map(classSymbol -> " : " + classSymbol.name).orElse("");
+        return (modifiers.toString().length() == 0 ? "" : modifiers + " ")
+                + "class " + name + parentSymbol.map(classSymbol -> " : " + classSymbol.name).orElse("");
     }
 
     /**
@@ -99,4 +106,8 @@ public final class ClassSymbol extends Symbol {
     }
 
     private boolean main;
+
+    public boolean isAbstract() {
+        return !abstractMethods.isEmpty();
+    }
 }

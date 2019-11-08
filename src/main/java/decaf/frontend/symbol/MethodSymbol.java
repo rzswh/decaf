@@ -70,4 +70,8 @@ public final class MethodSymbol extends Symbol {
     }
 
     private boolean main = false;
+
+    public boolean isAbstract() {
+        return modifiers.isAbstract();
+    }
 }

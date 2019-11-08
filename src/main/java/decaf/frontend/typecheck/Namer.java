@@ -13,10 +13,7 @@ import decaf.frontend.type.ClassType;
 import decaf.frontend.type.FunType;
 import decaf.frontend.type.Type;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * The namer phase: resolve all symbols defined in the abstract syntax tree and store them in symbol tables (i.e.
@@ -87,7 +84,7 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         //  static void main() { ... }
         boolean found = false;
         for (var clazz : classes.values()) {
-            if (clazz.name.equals("Main")) {
+            if (!clazz.modifiers.isAbstract() && clazz.name.equals("Main")) {
                 var symbol = clazz.symbol.scope.find("main");
                 if (symbol.isPresent() && symbol.get().isMethodSymbol()) {
                     var method = (MethodSymbol) symbol.get();
@@ -158,13 +155,13 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             var base = global.getClass(clazz.parent.get().name);
             var type = new ClassType(clazz.name, base.type);
             var scope = new ClassScope(base.scope);
-            var symbol = new ClassSymbol(clazz.name, base, type, scope, clazz.pos);
+            var symbol = new ClassSymbol(clazz.name, base, type, scope, clazz.pos, clazz.modifiers);
             global.declare(symbol);
             clazz.symbol = symbol;
         } else {
             var type = new ClassType(clazz.name);
             var scope = new ClassScope();
-            var symbol = new ClassSymbol(clazz.name, type, scope, clazz.pos);
+            var symbol = new ClassSymbol(clazz.name, type, scope, clazz.pos, clazz.modifiers);
             global.declare(symbol);
             clazz.symbol = symbol;
         }
@@ -178,11 +175,21 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             clazz.superClass.accept(this, ctx);
         }
 
-        ctx.open(clazz.symbol.scope);
+        ClassSymbol clazzSym = clazz.symbol;
+        clazzSym.abstractMethods = new ArrayList<>();
+        clazzSym.parentSymbol.ifPresent(classSymbol -> clazzSym.abstractMethods.addAll(classSymbol.abstractMethods));
+
+                ctx.open(clazz.symbol.scope);
         for (var field : clazz.fields) {
             field.accept(this, ctx);
         }
         ctx.close();
+
+        if (!clazzSym.abstractMethods.isEmpty() && !clazz.modifiers.isAbstract()) {
+            issue(new AbstractMethodNotOverridingError(clazzSym.pos, clazzSym.name));
+        }
+        //System.out.print(clazz.name + ": " + clazzSym.abstractMethods + "\n");
+
         clazz.resolved = true;
     }
 
@@ -217,7 +224,7 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         if (earlier.isPresent()) {
             if (earlier.get().isMethodSymbol()) { // may be overriden
                 var suspect = (MethodSymbol) earlier.get();
-                if (!suspect.isStatic() && !method.isStatic()) {
+                if (!suspect.isStatic() && !method.isStatic() && !(!suspect.isAbstract() && method.isAbstract()) ) {
                     // Only non-static methods can be overriden, but the type signature must be equivalent.
                     var formal = new FormalScope();
                     typeMethod(method, ctx, formal);
@@ -227,8 +234,10 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
                         ctx.declare(symbol);
                         method.symbol = symbol;
                         ctx.open(formal);
-                        method.body.accept(this, ctx);
+                        method.body.ifPresent(objects -> objects.accept(this, ctx));
                         ctx.close();
+                        if (suspect.isAbstract()) ctx.currentClass().abstractMethods.remove(suspect);
+                        if (symbol.isAbstract()) ctx.currentClass().abstractMethods.add(symbol);
                     } else {
                         issue(new BadOverrideError(method.pos, method.name, suspect.owner.name));
                     }
@@ -249,8 +258,12 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             ctx.declare(symbol);
             method.symbol = symbol;
             ctx.open(formal);
-            method.body.accept(this, ctx);
+            method.body.ifPresent(x -> x.accept(this, ctx));
             ctx.close();
+
+            // update abstract function list
+            if (method.isAbstract())
+                ctx.currentClass().abstractMethods.add(symbol);
         }
     }
 

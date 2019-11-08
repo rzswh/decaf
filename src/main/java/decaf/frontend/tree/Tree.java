@@ -196,7 +196,7 @@ public abstract class Tree {
         public Id id;
         public TypeLit returnType;
         public List<LocalVarDef> params;
-        public Block body; // nullable
+        public Optional<Block> body; // nullable
         // For convenience
         public String name;
         // For type check
@@ -211,12 +211,15 @@ public abstract class Tree {
             this.id = id;
             this.returnType = returnType;
             this.params = params;
-            this.body = body;
+            this.body = Optional.ofNullable(body);
             this.name = id.name;
         }
 
         public boolean isStatic() {
             return modifiers.isStatic();
+        }
+        public boolean isAbstract() {
+            return modifiers.isAbstract();
         }
 
         @Override
@@ -226,7 +229,7 @@ public abstract class Tree {
                 case 1 -> id;
                 case 2 -> returnType;
                 case 3 -> params;
-                case 4 -> Optional.ofNullable(body);
+                case 4 -> body;
                 default -> throw new IndexOutOfBoundsException(index);
             };
         }
