@@ -1,10 +1,12 @@
 package decaf.frontend.scope;
 
 import decaf.frontend.symbol.ClassSymbol;
+import decaf.frontend.symbol.LambdaSymbol;
 import decaf.frontend.symbol.MethodSymbol;
 import decaf.frontend.symbol.Symbol;
 import decaf.frontend.tree.Pos;
 
+import javax.swing.text.html.Option;
 import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -70,6 +72,11 @@ public class ScopeStack {
         return currMethod;
     }
 
+
+    public Optional<LambdaSymbol> currentLambda() {
+        return lambdaStack.empty() ? Optional.empty() : Optional.of(lambdaStack.peek());
+    }
+
     /**
      * Open a scope.
      * <p>
@@ -89,6 +96,8 @@ public class ScopeStack {
         } else if (scope.isFormalScope()) {
             var formalScope = (FormalScope) scope;
             currMethod = formalScope.getOwner();
+        } else if (scope.isLambdaScope()) {
+            lambdaStack.push(((LambdaScope) scope).getOwner());
         }
         scopeStack.push(scope);
     }
@@ -103,6 +112,8 @@ public class ScopeStack {
     public void close() {
         assert !scopeStack.isEmpty();
         Scope scope = scopeStack.pop();
+        if (scope.isLambdaScope())
+            lambdaStack.pop();
         if (scope.isClassScope()) {
             while (!scopeStack.isEmpty()) {
                 scopeStack.pop();
@@ -191,9 +202,38 @@ public class ScopeStack {
         currentScope().declare(symbol);
     }
 
+    /**
+     * Record currently defining symbol.
+     * It is especially useful when defining lambda variables, where
+     * lambda expressions are not allowed to access the symbol it is being assigned to.
+     * Invoke this method when initialization or assignment.
+     *
+     * @param symbol the symbol being defined
+     */
+    public void setDefining(Symbol symbol) {
+        currentlyDefining = symbol;
+    }
+    public void defined() {
+        definingSymbol.pop();
+    }
+    public void defining() {
+        assert currentlyDefining != null;
+        definingSymbol.push(currentlyDefining);
+    }
+    public boolean isBeingDefined(Symbol symbol) {
+        for (var defSym : definingSymbol) {
+            if (symbol == defSym)
+                return true;
+        }
+        return false;
+    }
+
     private Stack<Scope> scopeStack = new Stack<>();
     private ClassSymbol currClass;
     private MethodSymbol currMethod;
+    private Stack<LambdaSymbol> lambdaStack = new Stack<>();
+    private Stack<Symbol> definingSymbol = new Stack<>();
+    private Symbol currentlyDefining = null;
 
     private Optional<Symbol> findWhile(String key, Predicate<Scope> cond, Predicate<Symbol> validator) {
         ListIterator<Scope> iter = scopeStack.listIterator(scopeStack.size());
@@ -205,4 +245,5 @@ public class ScopeStack {
         }
         return cond.test(global) ? global.find(key) : Optional.empty();
     }
+
 }

@@ -1,10 +1,9 @@
 package decaf.frontend.tree;
 
 import decaf.frontend.scope.GlobalScope;
+import decaf.frontend.scope.LambdaScope;
 import decaf.frontend.scope.LocalScope;
-import decaf.frontend.symbol.ClassSymbol;
-import decaf.frontend.symbol.MethodSymbol;
-import decaf.frontend.symbol.VarSymbol;
+import decaf.frontend.symbol.*;
 import decaf.frontend.type.FunType;
 import decaf.frontend.type.Type;
 import decaf.lowlevel.instr.Temp;
@@ -465,6 +464,8 @@ public abstract class Tree {
      * Statement.
      */
     public static abstract class Stmt extends TreeNode {
+        public Type returnsType;
+
         public Stmt(Kind kind, String displayName, Pos pos) {
             super(kind, displayName, pos);
         }
@@ -488,7 +489,7 @@ public abstract class Tree {
      */
     public static class LocalVarDef extends Stmt {
         // Tree elements
-        public TypeLit typeLit; // nullable
+        public Optional<TypeLit> typeLit; // nullable
         public Id id;
         public Pos assignPos;
         public Optional<Expr> initVal;
@@ -501,7 +502,7 @@ public abstract class Tree {
             // pos = id.pos, assignPos = position of the '='
             // TODO: looks not very consistent, maybe we shall always report error simply at `pos`, not `assignPos`?
             super(Kind.LOCAL_VAR_DEF, "LocalVarDef", pos);
-            this.typeLit = typeLit;
+            this.typeLit = Optional.ofNullable(typeLit);
             this.id = id;
             this.assignPos = assignPos;
             this.initVal = initVal;
@@ -515,7 +516,7 @@ public abstract class Tree {
         @Override
         public Object treeElementAt(int index) {
             return switch (index) {
-                case 0 -> Optional.ofNullable(typeLit);
+                case 0 -> typeLit;
                 case 1 -> id;
                 case 2 -> initVal;
                 default -> throw new IndexOutOfBoundsException(index);
@@ -1059,6 +1060,7 @@ public abstract class Tree {
      * Left value, i.e. an expression that can be assigned to a value.
      */
     public static abstract class LValue extends Expr {
+
         public LValue(Kind kind, String displayName, Pos pos) {
             super(kind, displayName, pos);
         }
@@ -1077,8 +1079,9 @@ public abstract class Tree {
         // For convenience
         public String name;
         // For type check
-        public VarSymbol symbol;
+        public Symbol symbol;
         public boolean isClassName = false;
+        public boolean isArrayLength = false;
 
         public VarSel(Optional<Expr> receiver, Id variable, Pos pos) {
             super(Kind.VAR_SEL, "VarSel", pos);
@@ -1586,6 +1589,9 @@ public abstract class Tree {
     public abstract static class Lambda extends Expr {
 
         public List<LocalVarDef> varList;
+
+        public LambdaScope scope;
+        public LambdaSymbol symbol;
 
         public Lambda(Pos pos) {
             super(Kind.LAMBDA, "Lambda", pos);

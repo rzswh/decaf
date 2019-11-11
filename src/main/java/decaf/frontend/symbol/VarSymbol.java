@@ -12,6 +12,8 @@ import decaf.lowlevel.instr.Temp;
  */
 public final class VarSymbol extends Symbol {
 
+    public boolean finished = false;
+
     public VarSymbol(String name, Type type, Pos pos) {
         super(name, type, pos);
     }
@@ -34,7 +36,7 @@ public final class VarSymbol extends Symbol {
 
     @Override
     protected String str() {
-        return String.format("variable %s%s : %s", isParam() ? "@" : "", name, type);
+        return String.format("variable %s%s : %s", isParam() ? "@" : "", name, type == null ? "<none type>" : type);
     }
 
     public boolean isLocalVar() {

@@ -39,6 +39,15 @@ public final class PrettyScope extends PrettyPrinter<Scope> {
             // abstract method has no function body, so...
             if (formalScope.nestedLocalScope() != null) pretty(formalScope.nestedLocalScope());
             printer.decIndent();
+        } else if (scope.isLambdaScope()) {
+            var lambdaScope = (LambdaScope) scope;
+            printer.formatLn("FORMAL SCOPE OF '%s':", lambdaScope.getOwner().name);
+            printer.incIndent();
+            if (scope.isEmpty()) printer.println("<empty>");
+            else scope.forEach(printer::println);
+            // abstract method has no function body, so...
+            if (lambdaScope.nestedLocalScope() != null) pretty(lambdaScope.nestedLocalScope());
+            printer.decIndent();
         } else if (scope.isLocalScope()) {
             var localScope = (LocalScope) scope;
             printer.println("LOCAL SCOPE:");
