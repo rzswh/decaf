@@ -63,7 +63,10 @@ public final class FunType extends Type {
         if (argTypes.isEmpty()) {
             sb.append("()");
         } else if (argTypes.size() == 1) {
+            var arg = argTypes.get(0);
+            if (arg.isFuncType()) sb.append('(');
             sb.append(argTypes.get(0));
+            if (arg.isFuncType()) sb.append(')');
         } else {
             sb.append('(');
             for (int i = 0; i < argTypes.size(); i++) {
