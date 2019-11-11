@@ -3,6 +3,8 @@ package decaf.frontend.typecheck;
 import decaf.driver.Config;
 import decaf.driver.Phase;
 import decaf.driver.error.*;
+import decaf.frontend.scope.LocalScope;
+import decaf.frontend.scope.Scope;
 import decaf.frontend.scope.ScopeStack;
 import decaf.frontend.symbol.*;
 import decaf.frontend.tree.Pos;
@@ -116,8 +118,12 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             if (symbol.isMethodSymbol()) {
                 issue(new MethodAssignError(stmt.pos, name));
             }
-            if (ctx.currentLambda().isPresent() && ctx.findConflict(name).isEmpty()
-                    && !ctx.currentClass().scope.containsKey(name))
+
+            Scope dom = symbol.domain();
+            Scope belonging = dom instanceof LocalScope ? ((LocalScope) dom).belongingScope() : dom;
+
+            if (ctx.currentLambda().isPresent() && ctx.currentLambda().get().scope != belonging
+                    && !dom.isClassScope())
                 issue(new LambdaAssignError(stmt.pos));
         }
     }

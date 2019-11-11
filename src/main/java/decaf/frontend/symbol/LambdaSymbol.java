@@ -30,11 +30,6 @@ public class LambdaSymbol extends Symbol {
     }
 
     @Override
-    public ClassScope domain() {
-        return (ClassScope) definedIn;
-    }
-
-    @Override
     public boolean isMethodSymbol() {
         return true;
     }

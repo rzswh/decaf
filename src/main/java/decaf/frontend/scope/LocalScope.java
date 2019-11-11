@@ -8,9 +8,12 @@ import java.util.List;
  */
 public class LocalScope extends Scope {
 
+    private Scope parent;
+
     public LocalScope(Scope parent) {
         super(Kind.LOCAL);
         assert parent.isFormalOrLocalScope();
+        this.parent = parent;
         if (parent.isFormalScope() ) {
             ((FormalScope) parent).setNested(this);
         } else if (parent.isLambdaScope()) {
@@ -35,4 +38,11 @@ public class LocalScope extends Scope {
     }
 
     private List<Scope> nested = new ArrayList<>();
+
+    /**
+     * Find the smallest belonging FormalScope / ClassScope
+     */
+    public Scope belongingScope() {
+        return parent instanceof LocalScope ? ((LocalScope) parent).belongingScope() : parent;
+    }
 }
