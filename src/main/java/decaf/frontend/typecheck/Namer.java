@@ -198,7 +198,7 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
     public void visitVarDef(Tree.VarDef varDef, ScopeStack ctx) {
         var earlier = ctx.findConflict(varDef.name);
         if (earlier.isPresent()) {
-            if (earlier.get().isVarSymbol()) {
+            if (earlier.get().isVarSymbol() && ctx.currentClass().scope.find(varDef.name).isEmpty()) {
                 issue(new OverridingVarError(varDef.pos, varDef.name));
             } else {
                 issue(new DeclConflictError(varDef.pos, varDef.name, earlier.get().pos));
