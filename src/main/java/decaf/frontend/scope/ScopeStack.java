@@ -5,6 +5,7 @@ import decaf.frontend.symbol.LambdaSymbol;
 import decaf.frontend.symbol.MethodSymbol;
 import decaf.frontend.symbol.Symbol;
 import decaf.frontend.tree.Pos;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.text.html.Option;
 import java.util.ListIterator;
@@ -134,13 +135,18 @@ public class ScopeStack {
 
     /**
      * Same with {@link #lookup} but we restrict the symbol's position to be before the given {@code pos}.
+     * EDIT: the second part of the condition: referring to a defining symbol, which is accessed inside a different
+     * scope (assigning scope pk accessing scope)
      *
      * @param key symbol's name
      * @param pos position
      * @return innermost found symbol before {@code pos} (if any)
      */
     public Optional<Symbol> lookupBefore(String key, Pos pos) {
-        return findWhile(key, whatever -> true, s -> !(s.domain().isLocalScope() && s.pos.compareTo(pos) >= 0));
+        return findWhile(key, whatever -> true,
+                s -> !(s.domain().isLocalScope() && s.pos.compareTo(pos) >= 0)
+                        && !(!definingSymbol.empty() && definingSymbol.peek().getRight() != currentScope()
+                        && definingSymbol.peek().getLeft() == s));
     }
 
     /**
@@ -218,11 +224,11 @@ public class ScopeStack {
     }
     public void defining() {
         assert currentlyDefining != null;
-        definingSymbol.push(currentlyDefining);
+        definingSymbol.push(Pair.of(currentlyDefining, currentScope()));
     }
     public boolean isBeingDefined(Symbol symbol) {
         for (var defSym : definingSymbol) {
-            if (symbol == defSym)
+            if (symbol == defSym.getLeft() && currentScope() != defSym.getRight())
                 return true;
         }
         return false;
@@ -232,7 +238,7 @@ public class ScopeStack {
     private ClassSymbol currClass;
     private MethodSymbol currMethod;
     private Stack<LambdaSymbol> lambdaStack = new Stack<>();
-    private Stack<Symbol> definingSymbol = new Stack<>();
+    private Stack<Pair<Symbol, Scope>> definingSymbol = new Stack<>();
     private Symbol currentlyDefining = null;
 
     private Optional<Symbol> findWhile(String key, Predicate<Scope> cond, Predicate<Symbol> validator) {
