@@ -464,6 +464,9 @@ public abstract class Tree {
      * Statement.
      */
     public static abstract class Stmt extends TreeNode {
+        /**
+         * For type check: infer implicit return type
+         */
         public Type returnsType;
 
         public Stmt(Kind kind, String displayName, Pos pos) {
@@ -471,7 +474,7 @@ public abstract class Tree {
         }
 
         /**
-         * For type check: does this return a value?
+         * For type check: does this EXPLICITLY return a value?
          */
         public boolean returns = false;
 

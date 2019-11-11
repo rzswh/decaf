@@ -192,7 +192,7 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
                 issue(new BadReturnTypeError(stmt.pos, expected.toString(), actual.toString()));
             }
         }
-        stmt.returns = stmt.expr.isPresent();
+        stmt.returns = true;
         stmt.returnsType = actual;
     }
 
