@@ -85,17 +85,17 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             stmt.accept(this, ctx);
         }
         ctx.close();
-//        block.returns = !block.stmts.isEmpty() && block.stmts.get(block.stmts.size() - 1).returns;
-        block.returns = false;
+        block.returns = !block.stmts.isEmpty() && block.stmts.get(block.stmts.size() - 1).returns;
+//        block.returns = false;
         block.returnsType = null;
         for (var stmt: block.stmts) {
             if (stmt.returnsType != null)
                 block.returnsType = block.returnsType != null ?
                         typeLowerBound(block.returnsType, stmt.returnsType) : stmt.returnsType;
-            if (stmt.returns) {
-                block.returns = true;
-                break;
-            }
+//            if (stmt.returns) {
+//                block.returns = true;
+//                break;
+//            }
         }
     }
 
@@ -155,7 +155,7 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         loopLevel++;
         loop.body.accept(this, ctx);
         loopLevel--;
-        loop.returns = loop.body.returns;
+        loop.returns = false;
         loop.returnsType = loop.body.returnsType;
     }
 
