@@ -41,6 +41,11 @@ public final class BuiltInType extends Type {
      */
     public static final BuiltInType ERROR = new BuiltInType("Error");
 
+    /**
+     * Type inference fail. Types are incompatible.
+     */
+    public static final BuiltInType INVALID = new BuiltInType("Invalid");
+
     @Override
     public boolean subtypeOf(Type that) {
         if (eq(ERROR) || that.eq(ERROR)) {

@@ -141,9 +141,12 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         stmt.falseBranch.ifPresent(b -> b.accept(this, ctx));
         // if-stmt returns a value iff both branches return
         stmt.returns = stmt.trueBranch.returns && stmt.falseBranch.isPresent() && stmt.falseBranch.get().returns;
-        if (stmt.returns) {
-            stmt.returnsType = typeLowerBound(stmt.trueBranch.returnsType, stmt.falseBranch.get().returnsType);
-        } else stmt.returnsType = null;
+        Type t1 = stmt.trueBranch.returnsType;
+        Type t2 = stmt.falseBranch.map(x->x.returnsType).orElse(null);
+        if (t1 == null)
+            stmt.returnsType = t2;
+        else
+            stmt.returnsType = t2 != null ? typeLowerBound(t1, t2) : t1;
     }
 
     @Override
@@ -172,10 +175,6 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             if (stmt.returnsType != null)
                 loop.returnsType = loop.returnsType != null ?
                         typeLowerBound(loop.returnsType, stmt.returnsType) : stmt.returnsType;
-            if (stmt.returns) {
-                loop.returns = true;
-                break;
-            }
         }
         loopLevel--;
         ctx.close();
@@ -556,8 +555,10 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
                 }
             }
             Type retType = lambdaBlock.block.returnsType;
-            if (retType.eq(BuiltInType.NULL))
+            if (retType.eq(BuiltInType.INVALID)) {
                 issue(new BadReturnTypeBlockExprError(lambdaBlock.block.pos));
+                retType = BuiltInType.ERROR;
+            }
             FunType type = (FunType)lambdaBlock.type;
             type.returnType = retType;
         }
@@ -605,19 +606,23 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
     private Type typeLowerBound(Type t1, Type t2) {
         if (t1.hasError() || t2.hasError())
             return BuiltInType.ERROR;
+        else if (t1.eq(BuiltInType.NULL))
+            return t2;
+        else if (t2.eq(BuiltInType.NULL))
+            return t1;
         else if (t1.isVoidType())
-            return t2.isVoidType() ? t1 : BuiltInType.NULL;
+            return t2.isVoidType() ? t1 : BuiltInType.INVALID;
         else if (t1.isBaseType())
-            return t2.eq(t1) ? t1 : BuiltInType.NULL;
+            return t2.eq(t1) ? t1 : BuiltInType.INVALID;
         else if (t1.isArrayType())
             return t2.isArrayType() && ((ArrayType)t2).elementType == ((ArrayType)t1).elementType ?
-                    t1 : BuiltInType.NULL;
+                    t1 : BuiltInType.INVALID;
         else if (t1.isClassType()) {
             if (t1.subtypeOf(t2)) return t2;
             ClassType classType1 = (ClassType) t1;
             while (!t2.subtypeOf(classType1) && classType1.superType.isPresent())
                 classType1 = classType1.superType.get();
-            return t2.subtypeOf(classType1) ? classType1 : BuiltInType.NULL;
+            return t2.subtypeOf(classType1) ? classType1 : BuiltInType.INVALID;
         }
         else if (t1.isFuncType()) {
             FunType func1 = (FunType) t1;
@@ -627,12 +632,12 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             for (int j = 0; j < func1.argTypes.size(); j++) {
                 temp = typeUpperBound(func1.argTypes.get(j), func2.argTypes.get(j));
                 if (temp.hasError()) return BuiltInType.ERROR;
-                if (temp.eq(BuiltInType.NULL)) return BuiltInType.NULL;
+                if (temp.eq(BuiltInType.INVALID)) return BuiltInType.INVALID;
                 argTypes.add(temp);
             }
             temp = typeLowerBound(func1.returnType, func2.returnType);
             if (temp.hasError()) return BuiltInType.ERROR;
-            if (temp.eq(BuiltInType.NULL)) return BuiltInType.NULL;
+            if (temp.eq(BuiltInType.INVALID)) return BuiltInType.INVALID;
             return new FunType(temp, argTypes);
         }
         else return BuiltInType.ERROR;// Unsupported type
@@ -641,17 +646,19 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
     private Type typeUpperBound(Type t1, Type t2) {
         if (t1.hasError() || t2.hasError())
             return BuiltInType.ERROR;
+        else if (t1.eq(BuiltInType.NULL) || t2.eq(BuiltInType.NULL))
+            return BuiltInType.NULL;
         else if (t1.isVoidType())
-            return t2.isVoidType() ? t1 : BuiltInType.NULL;
+            return t2.isVoidType() ? t1 : BuiltInType.INVALID;
         else if (t1.isBaseType())
-            return t2.eq(t1) ? t1 : BuiltInType.NULL;
+            return t2.eq(t1) ? t1 : BuiltInType.INVALID;
         else if (t1.isArrayType())
             return t2.isArrayType() && ((ArrayType)t2).elementType == ((ArrayType)t1).elementType ?
-                    t1 : BuiltInType.NULL;
+                    t1 : BuiltInType.INVALID;
         else if (t1.isClassType()) {
             if (t1.subtypeOf(t2)) return t1;
             if (t2.subtypeOf(t1)) return t2;
-            return BuiltInType.NULL;
+            return BuiltInType.INVALID;
         }
         else if (t1.isFuncType()) {
             FunType func1 = (FunType) t1;
@@ -661,12 +668,12 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             for (int j = 0; j < func1.argTypes.size(); j++) {
                 temp = typeLowerBound(func1.argTypes.get(j), func2.argTypes.get(j));
                 if (temp.hasError()) return BuiltInType.ERROR;
-                if (temp.eq(BuiltInType.NULL)) return BuiltInType.NULL;
+                if (temp.eq(BuiltInType.INVALID)) return BuiltInType.INVALID;
                 argTypes.add(temp);
             }
             temp = typeUpperBound(func1.returnType, func2.returnType);
             if (temp.hasError()) return BuiltInType.ERROR;
-            if (temp.eq(BuiltInType.NULL)) return BuiltInType.NULL;
+            if (temp.eq(BuiltInType.INVALID)) return BuiltInType.INVALID;
             return new FunType(temp, argTypes);
         }
         else return BuiltInType.ERROR;// Unsupported type
