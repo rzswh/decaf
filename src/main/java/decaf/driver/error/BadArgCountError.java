@@ -14,17 +14,20 @@ public class BadArgCountError extends DecafError {
 
     private int count;
 
+    private boolean isLambda;
+
     public BadArgCountError(Pos pos, String method, int expect,
-                            int count) {
+                            int count, boolean isLambda) {
         super(pos);
         this.method = method;
         this.expect = expect;
         this.count = count;
+        this.isLambda = isLambda;
     }
 
     @Override
     protected String getErrMsg() {
-        return "function '" + method + "' expects " + expect
-                + " argument(s) but " + count + " given";
+        var prefix = isLambda ? "lambda expression" : "function '" + method + "'";
+        return prefix + " expects " + expect + " argument(s) but " + count + " given";
     }
 }
