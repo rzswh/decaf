@@ -483,6 +483,11 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         var at = expr.array.type;
         var it = expr.index.type;
 
+        if (at.hasError()) {
+            expr.type = BuiltInType.ERROR;
+            return;
+        }
+
         if (!at.isArrayType()) {
             issue(new NotArrayError(expr.array.pos));
             expr.type = BuiltInType.ERROR;
@@ -502,6 +507,8 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         if (call.expr instanceof Tree.VarSel && ((Tree.VarSel) call.expr).isArrayLength) {
             if (!call.args.isEmpty()) {
                 issue(new BadLengthArgError(call.pos, call.args.size()));
+            } else {
+                call.type = BuiltInType.INT;
             }
             return;
         }
@@ -551,7 +558,7 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             Tree.LambdaBlock lambdaBlock = (Tree.LambdaBlock) that;
             lambdaBlock.block.accept(this, ctx);
             if (!lambdaBlock.block.returns) {
-                if (lambdaBlock.block.returnsType == null)
+                if (lambdaBlock.block.returnsType == null || lambdaBlock.block.returnsType.eq(BuiltInType.VOID))
                     lambdaBlock.block.returnsType = BuiltInType.VOID;
                 else {
                     issue(new MissingReturnError(lambdaBlock.block.pos));
@@ -739,6 +746,7 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             lt = rt;
             stmt.symbol.type = lt;
             if (lt.eq(BuiltInType.VOID)) {
+                stmt.symbol.type = BuiltInType.ERROR; // this symbol should not trigger other errors...
                 issue(new BadVarTypeError(stmt.pos, stmt.name));
             }
         }
