@@ -283,9 +283,12 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         if (lambda instanceof Tree.LambdaBlock) {
             Tree.LambdaBlock lambdaBlock = (Tree.LambdaBlock) lambda;
             lambdaBlock.block.accept(this, ctx);
-        } else {
+        } else if (lambda instanceof Tree.LambdaExpr){
             // add an empty local scope
-            new LocalScope(lambda.scope);
+            var local = new LocalScope(lambda.scope);
+            ctx.open(local);
+            ((Tree.LambdaExpr) lambda).expr.accept(this, ctx);
+            ctx.close();
         }
         ctx.close();
         lambda.type = type = new FunType(BuiltInType.NULL, typeArgs); // its return type will be determined in Typer stage
@@ -361,7 +364,7 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
 
     @Override
     public void visitUnary(Tree.Unary unary, ScopeStack ctx) {
-        unary.operand.accept(this,ctx);
+        unary.operand.accept(this, ctx);
     }
 
     @Override
