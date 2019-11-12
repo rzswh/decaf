@@ -463,7 +463,7 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         }
         else if (field.get().isMethodSymbol()) {
             var method = (MethodSymbol) field.get();
-            // this.member() || Main.static()
+            // this.member() || Main.static() || this.static()
             boolean receiverClass = (receiver instanceof Tree.VarSel) && ((Tree.VarSel)receiver).isClassName;
             if (method.isStatic() || !receiverClass) {
                 expr.symbol = method;
