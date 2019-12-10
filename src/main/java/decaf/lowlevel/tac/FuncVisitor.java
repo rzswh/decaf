@@ -343,7 +343,7 @@ public class FuncVisitor {
 
     public Temp getFunctionWrapperOffset(String clazz, String method) {
         // construct wrapper function
-        return visitLoad(ctx.getOffset(clazz, method + "+"));
+        return visitLoad(ctx.getOffset(clazz + '+', method));
     }
     /**
      * Append an instruction to print a string.
