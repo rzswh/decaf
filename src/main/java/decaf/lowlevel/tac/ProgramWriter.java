@@ -30,6 +30,8 @@ public class ProgramWriter {
             ctx.putConstructorLabel(clazz.name);
             for (var method : clazz.methods) {
                 ctx.putFuncLabel(clazz.name, method);
+                if (!(clazz.isMainClass && method.equals("main")))
+                    ctx.putFuncLabel(clazz.name, method + "+");
             }
         }
 
@@ -37,11 +39,24 @@ public class ProgramWriter {
         for (var clazz : classes.values()) {
             buildVTableFor(clazz);
         }
+        buildCommonVTable(CLASS_ARRAY_LENGTH);
 
         // Create the `new` method for every class.
         for (var clazz : classes.values()) {
             createConstructorFor(clazz.name);
         }
+
+    }
+
+    private FuncLabel buildArrayLength() {
+        var label = ctx.getFuncLabel(CLASS_ARRAY_LENGTH, METHOD_ARRAY_LENGTH);
+        if (label != null) return label;
+        ctx.putFuncLabel(CLASS_ARRAY_LENGTH, METHOD_ARRAY_LENGTH);
+        label = ctx.getFuncLabel(CLASS_ARRAY_LENGTH, METHOD_ARRAY_LENGTH);
+        FuncVisitor mv = new FuncVisitor(label, 1, ctx);
+        mv.visitArrayLengthCaller();
+        mv.visitEnd();
+        return label;
     }
 
     /**
@@ -64,6 +79,18 @@ public class ProgramWriter {
         return new FuncVisitor(entry, numArgs, ctx);
     }
 
+    /**
+     * Generate TAC entry function of function object
+     */
+    public void visitFuncObject(String className, String funcName, int numArgs, boolean isStatic, boolean needReturn) {
+        var entry = ctx.getFuncLabel(className, funcName + '+');
+        FuncVisitor mv = new FuncVisitor(entry, numArgs + 1, ctx);
+        if (isStatic)
+            mv.visitStaticFuncCaller(className, funcName, numArgs, needReturn);
+        else
+            mv.visitMemberFuncCaller(className, funcName, numArgs, needReturn);
+        mv.visitEnd();
+    }
     /**
      * Call this when all functions are done.
      *
@@ -120,12 +147,19 @@ public class ProgramWriter {
                 } else {
                     vtbl.memberMethods.add(lbl);
                 }
+                vtbl.memberMethods.add(ctx.getFuncLabel(clazz.name, method + '+'));
             }
         }
 
         // 3. newly declared in this class
         for (var method : clazz.memberMethods) {
             vtbl.memberMethods.add(ctx.getFuncLabel(clazz.name, method));
+            vtbl.memberMethods.add(ctx.getFuncLabel(clazz.name, method + '+'));
+        }
+
+        for (var method: clazz.staticMethods) {
+            if (!clazz.isMainClass || !method.equals("main"))
+                vtbl.memberMethods.add(ctx.getFuncLabel(clazz.name, method + '+'));
         }
 
         // Similarly, member variables consist of ones that are:
@@ -141,6 +175,14 @@ public class ProgramWriter {
 
         // 3. newly declared in this class
         vtbl.memberVariables.addAll(clazz.memberVariables);
+
+        ctx.putVTable(vtbl);
+        ctx.putOffsets(vtbl);
+    }
+
+    private void buildCommonVTable(String name) {
+        var vtbl = new VTable(name, Optional.empty());
+        vtbl.memberMethods.add(buildArrayLength());
 
         ctx.putVTable(vtbl);
         ctx.putOffsets(vtbl);
@@ -216,5 +258,8 @@ public class ProgramWriter {
 
         private int nextTempLabelId = 1;
     }
+
+    public static final String CLASS_ARRAY_LENGTH = "Array$";
+    public static final String METHOD_ARRAY_LENGTH = "Array$getLength";
 
 }

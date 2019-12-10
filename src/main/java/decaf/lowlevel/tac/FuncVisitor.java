@@ -4,6 +4,7 @@ import decaf.lowlevel.instr.Temp;
 import decaf.lowlevel.label.FuncLabel;
 import decaf.lowlevel.label.Label;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -223,6 +224,19 @@ public class FuncVisitor {
         visitMemberCall(object, clazz, method, args, false);
     }
 
+    public Temp visitDirectCall(Temp entry, List<Temp> args, boolean needReturn) {
+        Temp temp = null;
+        for (var arg : args) {
+            func.add(new TacInstr.Parm(arg));
+        }
+        if (needReturn) {
+            temp = freshTemp();
+            func.add(new TacInstr.IndirectCall(temp, entry));
+        } else {
+            func.add(new TacInstr.IndirectCall(entry));
+        }
+        return temp;
+    }
     /**
      * Append instructions to invoke a static method.
      *
@@ -285,6 +299,52 @@ public class FuncVisitor {
         visitIntrinsicCall(func, false, args);
     }
 
+    public void visitMemberFuncCaller(String clazz, String method, int argsCount, boolean needReturn) {
+        var obj = getArgTemp(0);
+        var thiz = visitLoadFrom(obj, 4);
+        func.add(new TacInstr.Parm( thiz )); // this
+        for (int i = 0; i < argsCount; i++) {
+            func.add(new TacInstr.Parm( getArgTemp(i + 1) ));
+        }
+        var funcAddr = ctx.getFuncLabel(clazz, method);
+        if (needReturn) {
+            var temp = freshTemp();
+            func.add(new TacInstr.DirectCall(temp, funcAddr));
+            func.add(new TacInstr.Return(temp));
+        } else {
+            func.add(new TacInstr.DirectCall(funcAddr));
+        }
+    }
+
+    public void visitStaticFuncCaller(String clazz, String method, int argsCount, boolean needReturn) {
+        for (int i = 0; i < argsCount; i++) {
+            func.add(new TacInstr.Parm( getArgTemp(i + 1) ));
+        }
+        var funcAddr = ctx.getFuncLabel(clazz, method);
+        if (needReturn) {
+            var temp = freshTemp();
+            func.add(new TacInstr.DirectCall(temp, funcAddr));
+            func.add(new TacInstr.Return(temp));
+        } else {
+            func.add(new TacInstr.DirectCall(funcAddr));
+        }
+    }
+
+    public void visitArrayLengthCaller() {
+        Temp array = visitLoadFrom(getArgTemp(0), 4);
+        Temp ret = visitLoadFrom(array, -4);
+        visitReturn(ret);
+    }
+
+    public Temp getFunctionOffset(String clazz, String method) {
+        // construct wrapper function
+        return visitLoad(ctx.getOffset(clazz, method));
+    }
+
+    public Temp getFunctionWrapperOffset(String clazz, String method) {
+        // construct wrapper function
+        return visitLoad(ctx.getOffset(clazz, method + "+"));
+    }
     /**
      * Append an instruction to print a string.
      *
@@ -312,6 +372,10 @@ public class FuncVisitor {
      */
     public Temp visitLoadFrom(Temp base) {
         return visitLoadFrom(base, 0);
+    }
+
+    public Temp visitLoadFrom(Temp base, Temp offset) {
+        return visitLoadFrom(visitBinary(TacInstr.Binary.Op.ADD, base, offset));
     }
 
     /**

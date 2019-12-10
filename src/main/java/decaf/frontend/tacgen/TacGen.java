@@ -45,6 +45,9 @@ public class TacGen extends Phase<Tree.TopLevel, TacProg> implements TacEmitter 
                         i++;
                     }
 
+                    pw.visitFuncObject(clazz.name, method.name, numArgs,
+                            method.symbol.isStatic(),
+                            !method.symbol.type.returnType.isVoidType());
                     mv = pw.visitFunc(clazz.name, method.name, numArgs);
                     for (var param : method.params) {
                         param.symbol.temp = mv.getArgTemp(i);

@@ -360,6 +360,8 @@ public class Namer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         call.expr.accept(this, ctx);
         for (var arg: call.args)
             arg.accept(this, ctx);
+        if (call.expr instanceof Tree.VarSel)
+            call.symbol = ((Tree.VarSel) call.expr).symbol;
     }
 
     @Override

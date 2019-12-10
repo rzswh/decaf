@@ -1535,7 +1535,7 @@ public abstract class Tree {
         //
         public String methodName;
         // For type check
-        public MethodSymbol symbol;
+        public Symbol symbol;
         public boolean isArrayLength = false;
 
         public Call(Optional<Expr> receiver, Id method, List<Expr> args, Pos pos) {
