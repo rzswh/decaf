@@ -407,7 +407,7 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
                 if (ctx.currentMethod().isStatic() && !method.isStatic()) {
                     issue(new RefNonStaticError(expr.pos, ctx.currentMethod().name, expr.name));
                     return;
-                } else {
+                } else if (!ctx.currentMethod().isStatic()){
                     expr.setThis();
                 }
             }
