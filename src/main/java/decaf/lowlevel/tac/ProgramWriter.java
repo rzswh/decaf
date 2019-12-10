@@ -163,9 +163,8 @@ public class ProgramWriter {
         }
 
         for (var method: clazz.staticMethods) {
-            if (!clazz.isMainClass || !method.equals("main"))
-                Optional.ofNullable(ctx.getFuncLabel(clazz.name + '+', method))
-                        .ifPresent(x->vtblCaller.memberMethods.add(x));
+            Optional.ofNullable(ctx.getFuncLabel(clazz.name + '+', method))
+                    .ifPresent(x->vtblCaller.memberMethods.add(x));
         }
 
         // Similarly, member variables consist of ones that are:

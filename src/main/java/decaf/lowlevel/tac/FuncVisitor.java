@@ -306,13 +306,14 @@ public class FuncVisitor {
         for (int i = 0; i < argsCount; i++) {
             func.add(new TacInstr.Parm( getArgTemp(i + 1) ));
         }
-        var funcAddr = ctx.getFuncLabel(clazz, method);
+        var vtbl = visitLoadFrom(thiz);
+        var funcAddr = visitLoadFrom(vtbl, ctx.getOffset(clazz, method));
         if (needReturn) {
             var temp = freshTemp();
-            func.add(new TacInstr.DirectCall(temp, funcAddr));
+            func.add(new TacInstr.IndirectCall(temp, funcAddr));
             func.add(new TacInstr.Return(temp));
         } else {
-            func.add(new TacInstr.DirectCall(funcAddr));
+            func.add(new TacInstr.IndirectCall(funcAddr));
         }
     }
 
