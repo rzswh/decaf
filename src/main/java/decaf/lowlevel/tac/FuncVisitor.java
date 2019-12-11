@@ -1,5 +1,6 @@
 package decaf.lowlevel.tac;
 
+import decaf.frontend.symbol.LambdaSymbol;
 import decaf.lowlevel.instr.Temp;
 import decaf.lowlevel.label.FuncLabel;
 import decaf.lowlevel.label.Label;
@@ -346,6 +347,45 @@ public class FuncVisitor {
         // construct wrapper function
         return visitLoad(ctx.getOffset(clazz + '+', method));
     }
+
+    public FuncVisitor getLambdaFunction(LambdaSymbol symbol, int argsNum) {
+        ctx.putFuncLabel(ProgramWriter.CLASS_LAMBDA, symbol.name);
+        var lbl = ctx.getFuncLabel(ProgramWriter.CLASS_LAMBDA, symbol.name);
+        return new FuncVisitor(lbl, argsNum, ctx);
+    }
+
+    public void buildLambdaFuncCaller(LambdaSymbol symbol, int commonArgsNum, int capturedArgsNum, boolean needReturn) {
+        ctx.appendFunc(ProgramWriter.CLASS_LAMBDA_CALLER, symbol.name);
+        FuncLabel entry = ctx.getFuncLabel(ProgramWriter.CLASS_LAMBDA, symbol.name);
+        FuncLabel label = ctx.getFuncLabel(ProgramWriter.CLASS_LAMBDA_CALLER, symbol.name);
+        FuncVisitor visitor = new FuncVisitor(label, 1 + commonArgsNum, ctx);
+        var obj = visitor.getArgTemp(0);
+        for (int i = 0; i < commonArgsNum; i++)
+            visitor.func.add(new TacInstr.Parm(visitor.getArgTemp(i + 1)));
+        for (int i = 0; i < capturedArgsNum; i ++)
+            visitor.func.add(new TacInstr.Parm(visitor.visitLoadFrom( obj, 4 * (i + 1))));
+        if (needReturn) {
+            var ret = visitor.freshTemp();
+            visitor.func.add(new TacInstr.DirectCall(ret, entry));
+            visitor.func.add(new TacInstr.Return(ret));
+        } else {
+            visitor.func.add(new TacInstr.DirectCall(entry));
+        }
+        visitor.visitEnd();
+    }
+
+    public Temp buildLambdaFuncObj(LambdaSymbol symbol, List<Temp> args) {
+        int argSize = symbol.captured.size();
+        var size = visitLoad(4 * (1 + argSize));
+        var obj = visitIntrinsicCall(Intrinsic.ALLOCATE, true, size);
+        var vtbl = visitLoadVTable(ProgramWriter.CLASS_LAMBDA_CALLER);
+        var offset = visitLoad(ctx.getOffset(ProgramWriter.CLASS_LAMBDA_CALLER, symbol.name));
+        var entry = visitLoadFrom(vtbl, offset);
+        visitStoreTo(obj, entry);
+        for (int i = 0; i < argSize; i++)
+            visitStoreTo(obj, i * 4 + 4, args.get(i));
+        return obj;
+    }
     /**
      * Append an instruction to print a string.
      *
@@ -481,12 +521,15 @@ public class FuncVisitor {
     FuncVisitor(FuncLabel entry, int numArgs, ProgramWriter.Context ctx) {
         this.ctx = ctx;
         func = new TacFunc(entry, numArgs);
+        this.entry = entry;
         visitLabel(entry);
         argsTemps = new Temp[numArgs];
         for (int i = 0; i < numArgs; i++) {
             argsTemps[i] = freshTemp();
         }
     }
+
+    private FuncLabel entry;
 
     private TacFunc func;
 
@@ -495,4 +538,8 @@ public class FuncVisitor {
     private int nextTempId = 0;
 
     private Temp[] argsTemps;
+
+    public FuncLabel getEntry() {
+        return entry;
+    }
 }

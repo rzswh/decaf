@@ -1,7 +1,10 @@
 package decaf.frontend.scope;
 
+import decaf.frontend.symbol.Symbol;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Local scope: stores locally-defined variables.
@@ -26,6 +29,14 @@ public class LocalScope extends Scope {
     @Override
     public boolean isLocalScope() {
         return true;
+    }
+
+    public Optional<Symbol> lookupWithin(Symbol symbol) {
+        var ret = find(symbol.name);
+        for (var s : nested)
+            if (s instanceof LocalScope)
+                ret = ret.or(() -> ((LocalScope) s).lookupWithin(symbol));
+        return ret;
     }
 
     /**

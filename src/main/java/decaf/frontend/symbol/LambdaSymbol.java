@@ -1,11 +1,11 @@
 package decaf.frontend.symbol;
 
-import decaf.frontend.scope.ClassScope;
-import decaf.frontend.scope.FormalScope;
 import decaf.frontend.scope.LambdaScope;
 import decaf.frontend.tree.Pos;
-import decaf.frontend.tree.Tree;
 import decaf.frontend.type.FunType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LambdaSymbol extends Symbol {
 
@@ -19,6 +19,8 @@ public class LambdaSymbol extends Symbol {
     public final MethodSymbol owner;
 
     public boolean finished = false;
+
+    public List<VarSymbol> captured = new ArrayList<>();
 
     public LambdaSymbol(FunType type, LambdaScope scope, Pos pos,
                         MethodSymbol owner) {

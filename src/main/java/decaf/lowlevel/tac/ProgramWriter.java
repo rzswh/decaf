@@ -10,6 +10,7 @@ import java.util.*;
  * encoding.
  */
 public class ProgramWriter {
+
     /**
      * Constructor.
      *
@@ -40,6 +41,7 @@ public class ProgramWriter {
             buildVTableFor(clazz);
         }
         buildCommonVTable(CLASS_ARRAY_LENGTH);
+        ctx.putVTable(new VTable(CLASS_LAMBDA_CALLER, Optional.empty()));
 
         // Create the `new` method for every class.
         for (var clazz : classes.values()) {
@@ -255,6 +257,17 @@ public class ProgramWriter {
             }
         }
 
+        void appendFunc(String clazz, String method) {
+            FuncLabel label = getFuncLabel(clazz, method);
+            if (label == null) {
+                putFuncLabel(clazz, method);
+                label = getFuncLabel(clazz, method);
+            }
+            var vtable = getVTable(clazz);
+            vtable.memberMethods.add(label);
+            putOffsets(vtable);
+        }
+
         private Map<String, FuncLabel> labels = new TreeMap<>();
 
         private Map<String, VTable> vtables = new TreeMap<>();
@@ -267,6 +280,8 @@ public class ProgramWriter {
     }
 
     public static final String CLASS_ARRAY_LENGTH = "Array$";
+    public static final String CLASS_LAMBDA_CALLER = "LambdaCaller$";
     public static final String METHOD_ARRAY_LENGTH = "Array$getLength";
+    public static final String CLASS_LAMBDA = "Lambda$";
 
 }

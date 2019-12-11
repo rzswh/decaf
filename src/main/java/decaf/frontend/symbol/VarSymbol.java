@@ -44,7 +44,7 @@ public final class VarSymbol extends Symbol {
     }
 
     public boolean isParam() {
-        return definedIn.isFormalScope() || definedIn.isLambdaScope();
+        return definedIn == null || definedIn.isFormalScope() || definedIn.isLambdaScope();
     }
 
     public boolean isMemberVar() {
@@ -62,6 +62,15 @@ public final class VarSymbol extends Symbol {
             throw new IllegalArgumentException("this var symbol is not a member var");
         }
         return ((ClassScope) definedIn).getOwner();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof VarSymbol)) return false;
+        if (name.equals(((VarSymbol) obj).name) && definedIn == ((VarSymbol) obj).definedIn)
+            return true;
+        return super.equals(obj);
     }
 
     /**

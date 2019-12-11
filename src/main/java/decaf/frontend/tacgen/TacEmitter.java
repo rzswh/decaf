@@ -11,6 +11,7 @@ import decaf.lowlevel.label.Label;
 import decaf.lowlevel.tac.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -376,6 +377,44 @@ public interface TacEmitter extends Visitor<FuncVisitor> {
         mv.visitIntrinsicCall(Intrinsic.HALT);
         mv.visitLabel(exit);
     }
+
+    default List<Temp> getTempForCaptured(List<VarSymbol> captured, FuncVisitor mv) {
+        var args = new ArrayList<Temp>();
+        for (VarSymbol s : captured) {
+            if ("this".equals(s.name)) args.add(mv.getArgTemp(0));
+            else args.add(s.temp);
+        }
+        return args;
+    }
+
+    @Override
+    default void visitLambda(Tree.Lambda lambda, FuncVisitor mv) {
+        // feed captured variables
+//        lambda.symbol.captured.forEach(x->args.add(x.temp));
+        int numArgs = lambda.varList.size() + lambda.symbol.captured.size();
+        FuncVisitor inner = mv.getLambdaFunction(lambda.symbol, numArgs);
+        LambdaEmitter emitter = new LambdaEmitter(lambda.symbol, numArgs);
+        int i = 0;
+        for (var v : lambda.varList) {
+            v.symbol.temp = inner.getArgTemp(i);
+            i++;
+        }
+        if (lambda instanceof Tree.LambdaExpr) {
+            Tree.LambdaExpr expr = ((Tree.LambdaExpr) lambda);
+            expr.expr.accept(emitter, inner);
+            inner.visitReturn(expr.expr.val);
+        } else {
+            assert lambda instanceof Tree.LambdaBlock;
+            Tree.LambdaBlock block = ((Tree.LambdaBlock) lambda);
+            block.block.accept(emitter, inner);
+        }
+        inner.visitEnd();
+        boolean needReturn = !lambda.symbol.type.returnType.isVoidType();
+        mv.buildLambdaFuncCaller(lambda.symbol, lambda.varList.size(), lambda.symbol.captured.size(), needReturn);
+        List<Temp> args = getTempForCaptured(lambda.symbol.captured, mv);
+        lambda.val = mv.buildLambdaFuncObj(lambda.symbol, args);
+    }
+
 
     /**
      * Emit code for the following conditional statement:

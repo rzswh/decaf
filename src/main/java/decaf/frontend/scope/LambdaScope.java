@@ -1,6 +1,9 @@
 package decaf.frontend.scope;
 
 import decaf.frontend.symbol.LambdaSymbol;
+import decaf.frontend.symbol.Symbol;
+
+import java.util.Optional;
 
 public class LambdaScope extends Scope {
 
@@ -16,6 +19,10 @@ public class LambdaScope extends Scope {
 
     public void setOwner(LambdaSymbol owner) {
         this.owner = owner;
+    }
+
+    public Optional<Symbol> lookupWithin(Symbol symbol) {
+        return find(symbol.name).or(() -> nested.lookupWithin(symbol));
     }
 
     @Override

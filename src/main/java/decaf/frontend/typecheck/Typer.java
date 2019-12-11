@@ -396,6 +396,15 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
                     expr.type = BuiltInType.ERROR;
                     return;
                 }
+                // capture variables for lambda expressions
+                if (ctx.currentLambda().isPresent() && ctx.currentLambda().get().scope.lookupWithin(var).isEmpty()) {
+                    var list = ctx.currentLambda().get().captured;
+                    var sym = var;
+                    if (expr.receiver.isPresent())
+                        sym = VarSymbol.thisVar(ctx.currentClass().type, Pos.NoPos);
+                    if (!list.contains(sym))
+                        list.add(sym); // local
+                }
             } else if (symbol.get().isClassSymbol() && allowClassNameVar) { // special case: a class name
                 var clazz = (ClassSymbol) symbol.get();
                 expr.type = clazz.type;
@@ -574,6 +583,14 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
         }
         that.symbol.finished = true;
         ctx.close();
+        // inner merged into outer
+        if (ctx.currentLambda().isPresent()) {
+            var cur = ctx.currentLambda().get();
+            for (var s : that.symbol.captured) if (!cur.captured.contains(s)) cur.captured.add(s);
+            cur.captured.removeIf(y -> cur.scope.lookupWithin(y).isPresent());
+        }
+//        System.out.println(that.symbol.name);
+//        System.out.println(that.symbol.captured);
     }
 
     private Type typeBlock(Tree.Block block) {
