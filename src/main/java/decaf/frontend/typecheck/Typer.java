@@ -362,6 +362,11 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
             issue(new ThisInStaticFuncError(expr.pos));
         }
         expr.type = ctx.currentClass().type;
+        if (ctx.currentLambda().isPresent()) {
+            var list = ctx.currentLambda().get().captured;
+            var sym = VarSymbol.thisVar(ctx.currentClass().type, Pos.NoPos);
+            if (!list.contains(sym)) list.add(sym);
+        }
     }
 
     private boolean allowClassNameVar = false;
@@ -418,6 +423,12 @@ public class Typer extends Phase<Tree.TopLevel, Tree.TopLevel> implements TypeLi
                     return;
                 } else if (!ctx.currentMethod().isStatic()){
                     expr.setThis();
+                    if (ctx.currentLambda().isPresent()) {
+                        var list = ctx.currentLambda().get().captured;
+                        var sym = VarSymbol.thisVar(ctx.currentClass().type, Pos.NoPos);
+                        if (!list.contains(sym))
+                            list.add(sym); // local
+                    }
                 }
             }
             return;
