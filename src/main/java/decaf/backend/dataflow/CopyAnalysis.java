@@ -34,9 +34,10 @@ public class CopyAnalysis<I extends PseudoInstr> extends DefReachAnalysis<I, Cop
     @Override
     int update(Set<AnalysisInfo> out, Set<AnalysisInfo> in, Set<AnalysisInfo> gen, Set<AnalysisInfo> kill) {
         if (in.size() == 1 && ((CopyOptInfo)(in.iterator().next())).isAny()) {
+            boolean sign = out.size() == 1 && ((CopyOptInfo)(out.iterator().next())).isAny();
             out.clear();
             out.add(any());
-            return 1;
+            return sign ? 1 : 0;
         }
         var old = new TreeSet<>(out);
         int ret = 0;
@@ -45,6 +46,8 @@ public class CopyAnalysis<I extends PseudoInstr> extends DefReachAnalysis<I, Cop
         out.removeIf(x-> {
             for (var p: kill) {
                 if (((CopyOptInfo)x).data.getRight() == ((CopyOptInfo)p).data.getLeft())
+                    return true;
+                if (((CopyOptInfo)x).data.getLeft() == ((CopyOptInfo)p).data.getLeft())
                     return true;
             }
             for (var p : gen) {
@@ -58,15 +61,22 @@ public class CopyAnalysis<I extends PseudoInstr> extends DefReachAnalysis<I, Cop
     }
 
     @Override
-    void merge(Set<AnalysisInfo> in, Set<AnalysisInfo> out) {
-        if (in.size() == 1 && ((CopyOptInfo)(in.iterator().next())).isAny())
-            return;
-        if (out.size() == 1 && ((CopyOptInfo)(out.iterator().next())).isAny()) {
-            out.clear();
-            out.addAll(in);
+    Set<AnalysisInfo> merge(Set<AnalysisInfo> in, Set<AnalysisInfo> out) {
+        if (in == null) return new TreeSet<>(out);
+        if (out.size() == 1 && ((CopyOptInfo)(out.iterator().next())).isAny())
+            return in;
+        if (in.size() == 1 && ((CopyOptInfo)(in.iterator().next())).isAny()) {
+            in.clear();
+            in.addAll(out);
         } else {
-            out.retainAll(in);
+            in.retainAll(out);
         }
+        return in;
+    }
+
+    @Override
+    AnalysisInfo zero() {
+        return any();
     }
 
     private CopyOptInfo any() {

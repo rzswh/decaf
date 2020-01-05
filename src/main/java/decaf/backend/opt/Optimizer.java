@@ -101,6 +101,7 @@ public class Optimizer extends Phase<TacProg, TacProg> {
                         }
                     }
                 }
+                Log.fine("Func %s:\n", f.entry);
                 Log.ifLoggable(Level.FINE, printer -> new PrettyCFG<TacInstr>(printer).pretty(cfg));
             }
         } while (!finished);

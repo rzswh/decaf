@@ -14,15 +14,23 @@ public abstract class DefReachAnalysis<I extends PseudoInstr, V extends Analysis
             block.in = new TreeSet<>();
             initialize(setO2V( block.in), block.id == 0);
             block.out = new TreeSet<>();
+            block.out.add(zero());
             update(block.out, block.in, block.gen, block.kill);
         }
         var changed = false;
         do {
             changed = false;
             for (var block: graph.nodes) {
-                for (var next : graph.getPrev(block.id)) {
-                    merge(block.in, graph.getBlock(next).out);
+                if (block.id > 0){
+                    block.in = new TreeSet<>();
+                    block.in.add(zero());
+                    for (var next : graph.getPrev(block.id)) {
+                        if (block.in == null)
+                            block.in = graph.getBlock(next).out;
+                        else block.in = merge(block.in, graph.getBlock(next).out);
+                    }
                 }
+                assert block.in != null;
                 if (update(block.out, block.in, block.gen, block.kill) != 0)
                     changed = true;
             }
@@ -69,9 +77,10 @@ public abstract class DefReachAnalysis<I extends PseudoInstr, V extends Analysis
 
     abstract void initialize(Set<V> set, boolean isEntry);
     abstract int update(Set<AnalysisInfo> out, Set<AnalysisInfo> in, Set<AnalysisInfo> gen, Set<AnalysisInfo> kill);
-    abstract void merge(Set<AnalysisInfo> in, Set<AnalysisInfo> out);
+    abstract Set<AnalysisInfo> merge(Set<AnalysisInfo> in, Set<AnalysisInfo> out);
     abstract Set<V> computeGen(Loc<I> loc);
     abstract Set<V> computeKill(Loc<I> loc);
+    abstract AnalysisInfo zero();
 
     HashMap<Loc<I>, Set<V>> gens = new HashMap<>();
     HashMap<Loc<I>, Set<V>> kills = new HashMap<>();

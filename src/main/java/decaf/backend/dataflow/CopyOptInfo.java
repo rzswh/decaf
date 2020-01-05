@@ -31,6 +31,11 @@ public class CopyOptInfo implements AnalysisInfo {
     }
 
     @Override
+    public AnalysisInfo zero() {
+        return new CopyOptInfo(Kind.ANY);
+    }
+
+    @Override
     public String toString() {
         return kind == Kind.ANY ? "any" : data.toString();
     }
