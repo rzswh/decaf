@@ -1,0 +1,23 @@
+class Node {
+    int key;
+    class Node l;
+    class Node r;
+    class Node p;
+    bool c; // false for black, true for red
+    void delete_fix(class Node x)
+    {
+        class Node same = x.l;
+        class Node against = x.r;
+        bool l = x.p.l == x;
+        if (l) {
+            class Node tmp = same; same = against; against = tmp;
+        }
+        x.l = same;
+        x.r = against;
+    }
+}
+
+class Main {
+    static void main() {
+    }
+}

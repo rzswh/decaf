@@ -1,0 +1,646 @@
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T1,_T1), (_T2,_T2)]
+        
+        _T1 = *(_T0 + 4) # liveOut = null, in = []
+        _T2 = *(_T1 - 4) # liveOut = null, in = []
+        return _T2 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T0,_T0), (_T1,_T1), (_T2,_T2)]
+        
+        _T0 = 24 # liveOut = null, in = []
+        parm _T0 # liveOut = null, in = []
+        _T1 = call _Alloc # liveOut = null, in = []
+        _T2 = VTABLE<Node> # liveOut = null, in = []
+        *(_T1 + 0) = _T2 # liveOut = null, in = []
+        return _T1 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T0,_T0), (_T1,_T1), (_T2,_T2)]
+        
+        _T0 = 4 # liveOut = null, in = []
+        parm _T0 # liveOut = null, in = []
+        _T1 = call _Alloc # liveOut = null, in = []
+        _T2 = VTABLE<Main> # liveOut = null, in = []
+        *(_T1 + 0) = _T2 # liveOut = null, in = []
+        return _T1 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T2,_T2), (_T3,_T3), (_T4,_T4)]
+        
+        _T2 = *(_T0 + 4) # liveOut = null, in = []
+        parm _T2 # liveOut = null, in = []
+        parm _T1 # liveOut = null, in = []
+        _T3 = *(_T2 + 0) # liveOut = null, in = []
+        _T4 = *(_T3 + 8) # liveOut = null, in = []
+        call _T4 # liveOut = null, in = []
+        return # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        gen     = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        kill    = [(_T2,_T2), (_T3,_T3), (_T4,_T4), (_T5,_T5), (_T6,_T6), (_T7,_T7), (_T8,_T8), (_T9,_T9), (_T10,_T10)]
+        
+        _T3 = *(_T1 + 12) # liveOut = null, in = []
+        _T2 = _T3 # liveOut = null, in = []
+        _T5 = *(_T1 + 20) # liveOut = null, in = [(_T2,_T3)]
+        _T4 = _T5 # liveOut = null, in = [(_T2,_T3)]
+        _T7 = *(_T1 + 16) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T8 = *(_T1 + 16) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T9 = *(_T8 + 12) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T10 = (_T9 == _T1) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T6 = _T10 # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        if (_T10 == 0) branch _L1 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+    BLOCK 1
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        out     = [(_T2,_T3), (_T4,_T11), (_T6,_T10)]
+        gen     = [(_T4,_T11)]
+        kill    = [(_T2,_T2), (_T4,_T4), (_T11,_T11)]
+        
+        _T11 = _T3 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        _T2 = _T5 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10), (_T11,_T2)]
+        _T4 = _T11 # liveOut = null, in = [(_T2,_T4), (_T4,_T5), (_T6,_T10)]
+    BLOCK 2 (_L1)
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = [(_T2,_T3), (_T6,_T10)]
+        out     = [(_T2,_T3), (_T6,_T10)]
+        gen     = []
+        kill    = []
+        
+        *(_T1 + 12) = _T3 # liveOut = null, in = [(_T2,_T3), (_T6,_T10)]
+        *(_T1 + 20) = _T4 # liveOut = null, in = [(_T2,_T3), (_T6,_T10)]
+        return # liveOut = null, in = [(_T2,_T3), (_T6,_T10)]
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = []
+        
+        return # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T1,_T1), (_T2,_T2)]
+        
+        _T1 = *(_T0 + 4) # liveOut = null, in = []
+        _T2 = *(_T1 - 4) # liveOut = null, in = []
+        return _T2 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T0,_T0), (_T1,_T1), (_T2,_T2)]
+        
+        _T0 = 24 # liveOut = null, in = []
+        parm _T0 # liveOut = null, in = []
+        _T1 = call _Alloc # liveOut = null, in = []
+        _T2 = VTABLE<Node> # liveOut = null, in = []
+        *(_T1 + 0) = _T2 # liveOut = null, in = []
+        return _T1 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T0,_T0), (_T1,_T1), (_T2,_T2)]
+        
+        _T0 = 4 # liveOut = null, in = []
+        parm _T0 # liveOut = null, in = []
+        _T1 = call _Alloc # liveOut = null, in = []
+        _T2 = VTABLE<Main> # liveOut = null, in = []
+        *(_T1 + 0) = _T2 # liveOut = null, in = []
+        return _T1 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T2,_T2), (_T3,_T3), (_T4,_T4)]
+        
+        _T2 = *(_T0 + 4) # liveOut = null, in = []
+        parm _T2 # liveOut = null, in = []
+        parm _T1 # liveOut = null, in = []
+        _T3 = *(_T2 + 0) # liveOut = null, in = []
+        _T4 = *(_T3 + 8) # liveOut = null, in = []
+        call _T4 # liveOut = null, in = []
+        return # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        gen     = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        kill    = [(_T2,_T2), (_T3,_T3), (_T4,_T4), (_T5,_T5), (_T6,_T6), (_T7,_T7), (_T8,_T8), (_T9,_T9), (_T10,_T10)]
+        
+        _T3 = *(_T1 + 12) # liveOut = null, in = []
+        _T2 = _T3 # liveOut = null, in = []
+        _T5 = *(_T1 + 20) # liveOut = null, in = [(_T2,_T3)]
+        _T4 = _T5 # liveOut = null, in = [(_T2,_T3)]
+        _T7 = *(_T1 + 16) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T8 = *(_T1 + 16) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T9 = *(_T8 + 12) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T10 = (_T9 == _T1) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T6 = _T10 # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        if (_T10 == 0) branch _L1 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+    BLOCK 1
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        out     = [(_T2,_T5), (_T4,_T11), (_T6,_T10), (_T11,_T3)]
+        gen     = [(_T2,_T5), (_T4,_T11), (_T11,_T3)]
+        kill    = [(_T2,_T2), (_T4,_T4), (_T11,_T11)]
+        
+        _T11 = _T3 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        _T2 = _T5 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10), (_T11,_T3)]
+        _T4 = _T3 # liveOut = null, in = [(_T2,_T5), (_T4,_T5), (_T6,_T10), (_T11,_T3)]
+    BLOCK 2 (_L1)
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = [(_T6,_T10)]
+        out     = [(_T6,_T10)]
+        gen     = []
+        kill    = []
+        
+        *(_T1 + 12) = _T3 # liveOut = null, in = [(_T6,_T10)]
+        *(_T1 + 20) = _T4 # liveOut = null, in = [(_T6,_T10)]
+        return # liveOut = null, in = [(_T6,_T10)]
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = []
+        
+        return # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T1,_T1), (_T2,_T2)]
+        
+        _T1 = *(_T0 + 4) # liveOut = null, in = []
+        _T2 = *(_T1 - 4) # liveOut = null, in = []
+        return _T2 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T0,_T0), (_T1,_T1), (_T2,_T2)]
+        
+        _T0 = 24 # liveOut = null, in = []
+        parm _T0 # liveOut = null, in = []
+        _T1 = call _Alloc # liveOut = null, in = []
+        _T2 = VTABLE<Node> # liveOut = null, in = []
+        *(_T1 + 0) = _T2 # liveOut = null, in = []
+        return _T1 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T0,_T0), (_T1,_T1), (_T2,_T2)]
+        
+        _T0 = 4 # liveOut = null, in = []
+        parm _T0 # liveOut = null, in = []
+        _T1 = call _Alloc # liveOut = null, in = []
+        _T2 = VTABLE<Main> # liveOut = null, in = []
+        *(_T1 + 0) = _T2 # liveOut = null, in = []
+        return _T1 # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = [(_T2,_T2), (_T3,_T3), (_T4,_T4)]
+        
+        _T2 = *(_T0 + 4) # liveOut = null, in = []
+        parm _T2 # liveOut = null, in = []
+        parm _T1 # liveOut = null, in = []
+        _T3 = *(_T2 + 0) # liveOut = null, in = []
+        _T4 = *(_T3 + 8) # liveOut = null, in = []
+        call _T4 # liveOut = null, in = []
+        return # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        gen     = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        kill    = [(_T2,_T2), (_T3,_T3), (_T4,_T4), (_T5,_T5), (_T6,_T6), (_T7,_T7), (_T8,_T8), (_T9,_T9), (_T10,_T10)]
+        
+        _T3 = *(_T1 + 12) # liveOut = null, in = []
+        _T2 = _T3 # liveOut = null, in = []
+        _T5 = *(_T1 + 20) # liveOut = null, in = [(_T2,_T3)]
+        _T4 = _T5 # liveOut = null, in = [(_T2,_T3)]
+        _T7 = *(_T1 + 16) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T8 = *(_T1 + 16) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T9 = *(_T8 + 12) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T10 = (_T9 == _T1) # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        _T6 = _T10 # liveOut = null, in = [(_T2,_T3), (_T4,_T5)]
+        if (_T10 == 0) branch _L1 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+    BLOCK 1
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        out     = [(_T2,_T5), (_T4,_T3), (_T6,_T10), (_T11,_T3)]
+        gen     = [(_T2,_T5), (_T4,_T3), (_T11,_T3)]
+        kill    = [(_T2,_T2), (_T4,_T4), (_T11,_T11)]
+        
+        _T11 = _T3 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10)]
+        _T2 = _T5 # liveOut = null, in = [(_T2,_T3), (_T4,_T5), (_T6,_T10), (_T11,_T3)]
+        _T4 = _T3 # liveOut = null, in = [(_T2,_T5), (_T4,_T5), (_T6,_T10), (_T11,_T3)]
+    BLOCK 2 (_L1)
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = [(_T6,_T10)]
+        out     = [(_T6,_T10)]
+        gen     = []
+        kill    = []
+        
+        *(_T1 + 12) = _T3 # liveOut = null, in = [(_T6,_T10)]
+        *(_T1 + 20) = _T4 # liveOut = null, in = [(_T6,_T10)]
+        return # liveOut = null, in = [(_T6,_T10)]
+
+CFG
+    BLOCK 0
+        def     = null
+        liveUse = null
+        liveIn  = null
+        liveOut = null
+        in      = []
+        out     = []
+        gen     = []
+        kill    = []
+        
+        return # liveOut = null, in = []
+
+CFG
+    BLOCK 0
+        def     = [_T1, _T2]
+        liveUse = [_T0]
+        liveIn  = [_T0]
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T1 = *(_T0 + 4) # liveOut = [_T1], in = null
+        _T2 = *(_T1 - 4) # liveOut = [_T2], in = null
+        return _T2 # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T0, _T1, _T2]
+        liveUse = []
+        liveIn  = []
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T0 = 24 # liveOut = [_T0], in = null
+        parm _T0 # liveOut = [], in = null
+        _T1 = call _Alloc # liveOut = [_T1], in = null
+        _T2 = VTABLE<Node> # liveOut = [_T1, _T2], in = null
+        *(_T1 + 0) = _T2 # liveOut = [_T1], in = null
+        return _T1 # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T0, _T1, _T2]
+        liveUse = []
+        liveIn  = []
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T0 = 4 # liveOut = [_T0], in = null
+        parm _T0 # liveOut = [], in = null
+        _T1 = call _Alloc # liveOut = [_T1], in = null
+        _T2 = VTABLE<Main> # liveOut = [_T1, _T2], in = null
+        *(_T1 + 0) = _T2 # liveOut = [_T1], in = null
+        return _T1 # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T2, _T3, _T4]
+        liveUse = [_T0, _T1]
+        liveIn  = [_T0, _T1]
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T2 = *(_T0 + 4) # liveOut = [_T1, _T2], in = null
+        parm _T2 # liveOut = [_T1, _T2], in = null
+        parm _T1 # liveOut = [_T2], in = null
+        _T3 = *(_T2 + 0) # liveOut = [_T3], in = null
+        _T4 = *(_T3 + 8) # liveOut = [_T4], in = null
+        call _T4 # liveOut = [], in = null
+        return # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T2, _T3, _T4, _T5, _T6, _T7, _T8, _T9, _T10]
+        liveUse = [_T1]
+        liveIn  = [_T1]
+        liveOut = [_T1, _T3, _T4, _T5]
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T3 = *(_T1 + 12) # liveOut = [_T1, _T3], in = null
+        _T5 = *(_T1 + 20) # liveOut = [_T1, _T3, _T5], in = null
+        _T4 = _T5 # liveOut = [_T1, _T3, _T4, _T5], in = null
+        _T8 = *(_T1 + 16) # liveOut = [_T1, _T3, _T4, _T5, _T8], in = null
+        _T9 = *(_T8 + 12) # liveOut = [_T1, _T3, _T4, _T5, _T9], in = null
+        _T10 = (_T9 == _T1) # liveOut = [_T1, _T3, _T4, _T5, _T10], in = null
+        if (_T10 == 0) branch _L1 # liveOut = [_T1, _T3, _T4, _T5], in = null
+    BLOCK 1
+        def     = [_T2, _T4, _T11]
+        liveUse = [_T3, _T5]
+        liveIn  = [_T1, _T3, _T5]
+        liveOut = [_T1, _T3, _T4]
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T4 = _T3 # liveOut = [_T1, _T3, _T4], in = null
+    BLOCK 2 (_L1)
+        def     = []
+        liveUse = [_T1, _T3, _T4]
+        liveIn  = [_T1, _T3, _T4]
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        *(_T1 + 12) = _T3 # liveOut = [_T1, _T4], in = null
+        *(_T1 + 20) = _T4 # liveOut = [], in = null
+        return # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = []
+        liveUse = []
+        liveIn  = []
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        return # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T1, _T2]
+        liveUse = [_T0]
+        liveIn  = [_T0]
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T1 = *(_T0 + 4) # liveOut = [_T1], in = null
+        _T2 = *(_T1 - 4) # liveOut = [_T2], in = null
+        return _T2 # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T0, _T1, _T2]
+        liveUse = []
+        liveIn  = []
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T0 = 24 # liveOut = [_T0], in = null
+        parm _T0 # liveOut = [], in = null
+        _T1 = call _Alloc # liveOut = [_T1], in = null
+        _T2 = VTABLE<Node> # liveOut = [_T1, _T2], in = null
+        *(_T1 + 0) = _T2 # liveOut = [_T1], in = null
+        return _T1 # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T0, _T1, _T2]
+        liveUse = []
+        liveIn  = []
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T0 = 4 # liveOut = [_T0], in = null
+        parm _T0 # liveOut = [], in = null
+        _T1 = call _Alloc # liveOut = [_T1], in = null
+        _T2 = VTABLE<Main> # liveOut = [_T1, _T2], in = null
+        *(_T1 + 0) = _T2 # liveOut = [_T1], in = null
+        return _T1 # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T2, _T3, _T4]
+        liveUse = [_T0, _T1]
+        liveIn  = [_T0, _T1]
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T2 = *(_T0 + 4) # liveOut = [_T1, _T2], in = null
+        parm _T2 # liveOut = [_T1, _T2], in = null
+        parm _T1 # liveOut = [_T2], in = null
+        _T3 = *(_T2 + 0) # liveOut = [_T3], in = null
+        _T4 = *(_T3 + 8) # liveOut = [_T4], in = null
+        call _T4 # liveOut = [], in = null
+        return # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = [_T3, _T4, _T5, _T8, _T9, _T10]
+        liveUse = [_T1]
+        liveIn  = [_T1]
+        liveOut = [_T1, _T3, _T4]
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T3 = *(_T1 + 12) # liveOut = [_T1, _T3], in = null
+        _T5 = *(_T1 + 20) # liveOut = [_T1, _T3, _T5], in = null
+        _T4 = _T5 # liveOut = [_T1, _T3, _T4], in = null
+        _T8 = *(_T1 + 16) # liveOut = [_T1, _T3, _T4, _T8], in = null
+        _T9 = *(_T8 + 12) # liveOut = [_T1, _T3, _T4, _T9], in = null
+        _T10 = (_T9 == _T1) # liveOut = [_T1, _T3, _T4, _T10], in = null
+        if (_T10 == 0) branch _L1 # liveOut = [_T1, _T3, _T4], in = null
+    BLOCK 1
+        def     = [_T4]
+        liveUse = [_T3]
+        liveIn  = [_T1, _T3]
+        liveOut = [_T1, _T3, _T4]
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        _T4 = _T3 # liveOut = [_T1, _T3, _T4], in = null
+    BLOCK 2 (_L1)
+        def     = []
+        liveUse = [_T1, _T3, _T4]
+        liveIn  = [_T1, _T3, _T4]
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        *(_T1 + 12) = _T3 # liveOut = [_T1, _T4], in = null
+        *(_T1 + 20) = _T4 # liveOut = [], in = null
+        return # liveOut = [], in = null
+
+CFG
+    BLOCK 0
+        def     = []
+        liveUse = []
+        liveIn  = []
+        liveOut = []
+        in      = null
+        out     = null
+        gen     = null
+        kill    = null
+        
+        return # liveOut = [], in = null
+
+[INFO] Number of executed sentences: 1

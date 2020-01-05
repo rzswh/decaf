@@ -1,0 +1,16 @@
+class Main {
+    static int f(int x) {
+        int i = 0;
+        int j = 1;
+        int k = i+j;
+        if (x == 0) {
+            k = 256 + k;
+        } else {
+            k = 128 + k;
+        }
+        return j;
+    }
+    static void main() {
+        Print(f(233));
+    }
+}
