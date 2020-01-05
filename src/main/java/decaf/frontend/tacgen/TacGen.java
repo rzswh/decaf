@@ -3,6 +3,7 @@ package decaf.frontend.tacgen;
 import decaf.driver.Config;
 import decaf.driver.Phase;
 import decaf.frontend.tree.Tree;
+import decaf.lowlevel.log.Log;
 import decaf.lowlevel.tac.*;
 
 import java.io.FileNotFoundException;
@@ -78,7 +79,8 @@ public class TacGen extends Phase<Tree.TopLevel, TacProg> implements TacEmitter 
 
             // and then execute it using our simulator.
             var simulator = new Simulator(System.in, config.output);
-            simulator.execute(program);
+            int numExe = simulator.execute(program);
+            Log.info("Number of executed sentences: " + numExe);
         }
     }
 }
