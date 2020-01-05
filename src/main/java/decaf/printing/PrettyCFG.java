@@ -35,13 +35,17 @@ public class PrettyCFG<I extends PseudoInstr> extends PrettyPrinter<CFG<I>> {
         printer.prettyFormatLn("liveUse = %s", bb.liveUse);
         printer.prettyFormatLn("liveIn  = %s", bb.liveIn);
         printer.prettyFormatLn("liveOut = %s", bb.liveOut);
+        printer.prettyFormatLn("in      = %s", bb.in);
+        printer.prettyFormatLn("out     = %s", bb.out);
+        printer.prettyFormatLn("gen     = %s", bb.gen);
+        printer.prettyFormatLn("kill    = %s", bb.kill);
         printer.println();
 
         if (bb.isEmpty()) {
             printer.println("<empty>");
         } else {
             for (var loc : bb) {
-                printer.prettyFormatLn("%s # liveOut = %s", loc.instr, loc.liveOut);
+                printer.prettyFormatLn("%s # liveOut = %s, in = %s", loc.instr, loc.liveOut, loc.in);
             }
         }
 
