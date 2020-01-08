@@ -81,7 +81,7 @@ public class Optimizer extends Phase<TacProg, TacProg> {
                                 loc.instr = ((TacInstr.Return) ins).value.map(x -> new TacInstr.Return(ins.srcs[0]))
                                         .orElse(new TacInstr.Return());
                             } else if (ins instanceof TacInstr.Parm) {
-                                loc.instr = new TacInstr.Parm(ins.srcs[0]);
+                                loc.instr = new TacInstr.Parm(ins.srcs[0], ((TacInstr.Parm) ins).numParms);
                             } else if (ins instanceof TacInstr.IndirectCall) {
                                 loc.instr = ((TacInstr.IndirectCall) ins).dst
                                         .map(x -> new TacInstr.IndirectCall(x, ins.srcs[0]))
