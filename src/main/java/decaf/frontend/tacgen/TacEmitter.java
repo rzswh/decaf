@@ -666,7 +666,7 @@ public interface TacEmitter extends Visitor<FuncVisitor> {
         var size = mv.visitLoad(4);
         Temp obj = mv.visitIntrinsicCall(Intrinsic.ALLOCATE, true, size);
         Temp offset = mv.getFunctionWrapperOffset(className, methodName);
-        Temp vtbl = mv.visitLoadVTable(className + '+');
+        Temp vtbl = mv.visitLoadVTable(className + "__");
         Temp entry = mv.visitLoadFrom(vtbl, offset);
         mv.visitStoreTo(obj, 0, entry);
         return obj;
@@ -677,7 +677,7 @@ public interface TacEmitter extends Visitor<FuncVisitor> {
         var size = mv.visitLoad(8);
         Temp obj = mv.visitIntrinsicCall(Intrinsic.ALLOCATE, true, size);
         Temp offset = mv.getFunctionWrapperOffset(className, methodName);
-        Temp vtbl = mv.visitLoadVTable(className + '+');
+        Temp vtbl = mv.visitLoadVTable(className + "__");
         Temp entry = mv.visitLoadFrom(vtbl, offset);
         mv.visitStoreTo(obj, 0, entry); // function entry!
         mv.visitStoreTo(obj, 4, receiver);

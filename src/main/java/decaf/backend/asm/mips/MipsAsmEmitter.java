@@ -280,7 +280,9 @@ public final class MipsAsmEmitter extends AsmEmitter {
             if (argCount < 4) {
                 seq.add(new Mips.Move(Mips.argRegs[argCount], instr.value));
             } else {
-                seq.add(new Mips.StoreWord(instr.value, Mips.SP, argCount * 4));
+                // System.out.println(- (36 + instr.numParms * 4));
+                // temporarily saved at the high address of next stack frame
+                seq.add(new Mips.StoreWord(instr.value, Mips.SP, argCount * 4 - (instr.numParms * 4)));
             }
             argCount++;
         }

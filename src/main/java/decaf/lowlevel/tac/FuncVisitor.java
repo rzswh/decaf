@@ -205,9 +205,9 @@ public class FuncVisitor {
         var vtbl = visitLoadFrom(object);
         var entry = visitLoadFrom(vtbl, ctx.getOffset(clazz, method));
 
-        func.add(new TacInstr.Parm(object));
+        func.add(new TacInstr.Parm(object, 1 + args.size()));
         for (var arg : args) {
-            func.add(new TacInstr.Parm(arg));
+            func.add(new TacInstr.Parm(arg, 1 + args.size()));
         }
         if (needReturn) {
             temp = freshTemp();
@@ -228,7 +228,7 @@ public class FuncVisitor {
     public Temp visitDirectCall(Temp entry, List<Temp> args, boolean needReturn) {
         Temp temp = null;
         for (var arg : args) {
-            func.add(new TacInstr.Parm(arg));
+            func.add(new TacInstr.Parm(arg, args.size()));
         }
         if (needReturn) {
             temp = freshTemp();
@@ -252,7 +252,7 @@ public class FuncVisitor {
         var entry = ctx.getFuncLabel(clazz, method);
 
         for (var arg : args) {
-            func.add(new TacInstr.Parm(arg));
+            func.add(new TacInstr.Parm(arg, args.size()));
         }
         if (needReturn) {
             temp = freshTemp();
@@ -282,7 +282,7 @@ public class FuncVisitor {
         Temp temp = null;
 
         for (var arg : args) {
-            this.func.add(new TacInstr.Parm(arg));
+            this.func.add(new TacInstr.Parm(arg, args.length));
         }
         if (needReturn) {
             temp = freshTemp();
@@ -303,9 +303,9 @@ public class FuncVisitor {
     public void visitMemberFuncCaller(String clazz, String method, int argsCount, boolean needReturn) {
         var obj = getArgTemp(0);
         var thiz = visitLoadFrom(obj, 4);
-        func.add(new TacInstr.Parm( thiz )); // this
+        func.add(new TacInstr.Parm( thiz , 1 + argsCount)); // this
         for (int i = 0; i < argsCount; i++) {
-            func.add(new TacInstr.Parm( getArgTemp(i + 1) ));
+            func.add(new TacInstr.Parm( getArgTemp(i + 1) , 1 + argsCount));
         }
         var vtbl = visitLoadFrom(thiz);
         var funcAddr = visitLoadFrom(vtbl, ctx.getOffset(clazz, method));
@@ -320,7 +320,7 @@ public class FuncVisitor {
 
     public void visitStaticFuncCaller(String clazz, String method, int argsCount, boolean needReturn) {
         for (int i = 0; i < argsCount; i++) {
-            func.add(new TacInstr.Parm( getArgTemp(i + 1) ));
+            func.add(new TacInstr.Parm( getArgTemp(i + 1), argsCount));
         }
         var funcAddr = ctx.getFuncLabel(clazz, method);
         if (needReturn) {
@@ -345,7 +345,7 @@ public class FuncVisitor {
 
     public Temp getFunctionWrapperOffset(String clazz, String method) {
         // construct wrapper function
-        return visitLoad(ctx.getOffset(clazz + '+', method));
+        return visitLoad(ctx.getOffset(clazz + "__", method));
     }
 
     public FuncVisitor getLambdaFunction(LambdaSymbol symbol, int argsNum) {
@@ -361,9 +361,11 @@ public class FuncVisitor {
         FuncVisitor visitor = new FuncVisitor(label, 1 + commonArgsNum, ctx);
         var obj = visitor.getArgTemp(0);
         for (int i = 0; i < commonArgsNum; i++)
-            visitor.func.add(new TacInstr.Parm(visitor.getArgTemp(i + 1)));
+            visitor.func.add(new TacInstr.Parm(visitor.getArgTemp(i + 1), commonArgsNum + capturedArgsNum));
         for (int i = 0; i < capturedArgsNum; i ++)
-            visitor.func.add(new TacInstr.Parm(visitor.visitLoadFrom( obj, 4 * (i + 1))));
+            visitor.func.add(new TacInstr.Parm(
+                    visitor.visitLoadFrom( obj, 4 * (i + 1)), commonArgsNum + capturedArgsNum)
+            );
         if (needReturn) {
             var ret = visitor.freshTemp();
             visitor.func.add(new TacInstr.DirectCall(ret, entry));

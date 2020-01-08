@@ -32,7 +32,7 @@ public class ProgramWriter {
             for (var method : clazz.methods) {
                 ctx.putFuncLabel(clazz.name, method);
                 if (!(clazz.isMainClass && method.equals("main")))
-                    ctx.putFuncLabel(clazz.name + '+', method);
+                    ctx.putFuncLabel(clazz.name + "__", method);
             }
         }
 
@@ -85,7 +85,7 @@ public class ProgramWriter {
      * Generate TAC entry function of function object
      */
     public void visitFuncObject(String className, String funcName, int numArgs, boolean isStatic, boolean needReturn) {
-        var entry = ctx.getFuncLabel(className + '+', funcName);
+        var entry = ctx.getFuncLabel(className + "__", funcName);
         FuncVisitor mv = new FuncVisitor(entry, numArgs + (isStatic ? 1 : 0), ctx);
         if (isStatic)
             mv.visitStaticFuncCaller(className, funcName, numArgs, needReturn);
@@ -135,7 +135,7 @@ public class ProgramWriter {
             return ctx.getVTable(c);
         });
         var vtbl = new VTable(clazz.name, parent);
-        var vtblCaller = new VTable(clazz.name + '+', Optional.empty());
+        var vtblCaller = new VTable(clazz.name + "__", Optional.empty());
 
         // Member methods consist of ones that are:
         // 1. inherited from super class
@@ -147,11 +147,11 @@ public class ProgramWriter {
                 if (clazz.memberMethods.contains(method)) {
                     vtbl.memberMethods.add(ctx.getFuncLabel(clazz.name, method));
                     clazz.memberMethods.remove(method);
-                    Optional.ofNullable(ctx.getFuncLabel(clazz.name + '+', method))
+                    Optional.ofNullable(ctx.getFuncLabel(clazz.name + "__", method))
                             .ifPresent(x->vtblCaller.memberMethods.add(x));
                 } else {
                     vtbl.memberMethods.add(lbl);
-                    Optional.ofNullable(ctx.getFuncLabel(lbl.clazz + '+', lbl.method))
+                    Optional.ofNullable(ctx.getFuncLabel(lbl.clazz + "__", lbl.method))
                             .ifPresent(x->vtblCaller.memberMethods.add(x));
                 }
             }
@@ -160,12 +160,12 @@ public class ProgramWriter {
         // 3. newly declared in this class
         for (var method : clazz.memberMethods) {
             vtbl.memberMethods.add(ctx.getFuncLabel(clazz.name, method));
-            Optional.ofNullable(ctx.getFuncLabel(clazz.name + '+', method))
+            Optional.ofNullable(ctx.getFuncLabel(clazz.name + "__", method))
                     .ifPresent(x->vtblCaller.memberMethods.add(x));
         }
 
         for (var method: clazz.staticMethods) {
-            Optional.ofNullable(ctx.getFuncLabel(clazz.name + '+', method))
+            Optional.ofNullable(ctx.getFuncLabel(clazz.name + "__", method))
                     .ifPresent(x->vtblCaller.memberMethods.add(x));
         }
 
@@ -279,9 +279,9 @@ public class ProgramWriter {
         private int nextTempLabelId = 1;
     }
 
-    public static final String CLASS_ARRAY_LENGTH = "Array$";
-    public static final String CLASS_LAMBDA_CALLER = "LambdaCaller$";
-    public static final String METHOD_ARRAY_LENGTH = "Array$getLength";
-    public static final String CLASS_LAMBDA = "Lambda$";
+    public static final String CLASS_ARRAY_LENGTH = "Array__";
+    public static final String CLASS_LAMBDA_CALLER = "LambdaCaller__";
+    public static final String METHOD_ARRAY_LENGTH = "Array.getLength";
+    public static final String CLASS_LAMBDA = "Lambda__";
 
 }

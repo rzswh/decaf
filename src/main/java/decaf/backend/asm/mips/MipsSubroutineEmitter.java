@@ -93,6 +93,12 @@ public class MipsSubroutineEmitter extends SubroutineEmitter {
     public void emitEnd() {
         printer.printComment("start of prologue");
         printer.printInstr(new Mips.SPAdd(-nextLocalOffset), "push stack frame");
+        // move arguments in stacks
+        int offset = nextLocalOffset - info.numArg * 4;
+        for (int i = 4; i < info.numArg; i++) {
+            printer.printInstr(new Mips.NativeLoadWord(Mips.T0, Mips.SP, i * 4 + offset));
+            printer.printInstr(new Mips.NativeStoreWord(Mips.T0, Mips.SP, i * 4));
+        }
         if (Mips.RA.isUsed() || info.hasCalls) {
             printer.printInstr(new Mips.NativeStoreWord(Mips.RA, Mips.SP, info.argsSize + 32),
                     "save the return address");
