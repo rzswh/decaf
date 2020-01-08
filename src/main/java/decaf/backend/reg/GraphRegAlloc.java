@@ -34,6 +34,7 @@ public class GraphRegAlloc extends RegAlloc {
             var ind = Optional.ofNullable(coloring.get(argi.index));
             if (ind.isEmpty()) continue;
             var reg = emitter.allocatableRegs[ind.get()];
+            reg.temp = argi;
             subEmitter.emitLoadFromStack(reg, argi);
         }
         for (var bb : graph) {
