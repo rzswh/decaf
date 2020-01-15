@@ -5,9 +5,6 @@ import decaf.backend.asm.mips.MipsAsmEmitter;
 import decaf.backend.opt.Optimizer;
 import decaf.backend.reg.BruteRegAlloc;
 import decaf.backend.reg.GraphRegAlloc;
-import decaf.frontend.parsing.LLParser;
-import decaf.frontend.parsing.JaccParser;
-import decaf.frontend.tacgen.TacGen;
 import decaf.frontend.tree.Tree;
 import decaf.frontend.typecheck.Namer;
 import decaf.frontend.typecheck.Typer;
@@ -50,3 +47,4 @@ public class TaskFactory {
         return tacGen().then(new Asm(emitter, new GraphRegAlloc(emitter), config));
     }
 }
+        return tacGen().then(new Asm(emitter, new GraphRegAlloc(emitter), config));

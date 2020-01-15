@@ -40,14 +40,6 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
         }
     }
 
-    @Override
-    public void issue(DecafError error) {
-        if (!errors.isEmpty()) {
-            var last = errors.get(errors.size() - 1);
-            if (error.toString().equals(last.toString())) { // ignore
-                return;
-            }
-        }
 
         super.issue(error);
     }
@@ -94,10 +86,7 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
                 case Tokens.INSTANCE_OF -> INSTANCE_OF;
                 case Tokens.LESS_EQUAL -> LESS_EQUAL;
                 case Tokens.GREATER_EQUAL -> GREATER_EQUAL;
-                case Tokens.EQUAL -> EQUAL;
-                case Tokens.NOT_EQUAL -> NOT_EQUAL;
-                case Tokens.DOUBLE_ARROW -> DOUBLE_ARROW;
-                case Tokens.FUN -> FUN;
+                case Tokens.ABSTRACT -> ABSTRACT;
                 case Tokens.VAR -> VAR;
                 default -> code; // single-character, use their ASCII code!
             };
@@ -107,12 +96,23 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
          * Parse function for every non-terminal, with error recovery.
          * NOTE: the current implementation is buggy and may throw {@link NullPointerException}.
          * TODO: find a correct implementation for error recovery!
-         * TODO: You are free to change the method body as you wish, but not the interface!
-         *
-         * @param symbol the non-terminal to be parsed
-         * @return the parsed value of {@code symbol} if parsing succeeds, or else {@code null}.
-         */
-        private SemValue parseSymbol(int symbol, Set<Integer> follow) {
+                case Tokens.DOUBLE_ARROW -> DOUBLE_ARROW;
+                case Tokens.FUN -> FUN;
+                case Tokens.VAR -> VAR;
+            TreeSet<Integer> end = new TreeSet<>(follow);
+            end.addAll(followSet(symbol));   // modified!
+            var result = query(symbol, token); // get production by lookahead symbol
+            if (result == null) {   //  error revocery
+                // print error info
+                yyerror("syntax error");
+
+                while (query(symbol, token) == null && !end.contains(token)) {
+                    nextToken();
+                }
+                result = query(symbol, token);
+                if (result == null) {  // terminate analysis of SYMBOL
+                    return null;
+                }
             TreeSet<Integer> end = new TreeSet<>(follow);
             end.addAll(followSet(symbol));   // modified!
             var result = query(symbol, token); // get production by lookahead symbol
@@ -130,16 +130,16 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
                 // now result != null
             }
             // correct syntax
-            var actionId = result.getKey(); // get user-defined action
-
-            var right = result.getValue(); // right-hand side of production
-            var length = right.size();
-            var params = new SemValue[length + 1];
+                act(actionId, params); // do user-defined action
+            else
+                params[0] = null;   // expression parsing error
+            return params[0];
+        }
             boolean succ = true;
-
-            for (var i = 0; i < length; i++) { // parse right-hand side symbols one by one
-                var term = right.get(i);
-                params[i + 1] = isNonTerminal(term)
+         * @param expected the expected token.
+         * @return sem value
+         */
+        private SemValue matchToken(int expected) {
                         ? parseSymbol(term, end) // for non terminals: recursively parse it
                         : matchToken(term) // for terminals: match token
                 ;
@@ -151,24 +151,3 @@ public class LLParser extends Phase<InputStream, Tree.TopLevel> {
                 act(actionId, params); // do user-defined action
             else
                 params[0] = null;   // expression parsing error
-            return params[0];
-        }
-
-        /**
-         * Match if the lookahead token is the same as the expected token.
-         *
-         * @param expected the expected token.
-         * @return sem value
-         */
-        private SemValue matchToken(int expected) {
-            SemValue self = semValue;
-            if (token != expected) {
-                yyerror("syntax error");
-                return null;
-            }
-
-            token = nextToken();
-            return self;
-        }
-    }
-}

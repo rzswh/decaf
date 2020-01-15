@@ -39,9 +39,6 @@ public interface Tokens {
     int VAR = 48;
     int DOUBLE_ARROW = 49;
     int FUN = 50;
-
-    // MUST use ASCII code to encode a single-character token.
-    // '!' (code=33)
     // '%' (code=37)
     // '(' (code=40)
     // ')' (code=41)

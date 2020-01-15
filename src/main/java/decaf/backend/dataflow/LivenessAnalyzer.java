@@ -61,19 +61,12 @@ public class LivenessAnalyzer<I extends PseudoInstr> implements Consumer<CFG<I>>
 
         for (var loc : bb) {
             bb.def.addAll(loc.instr.getWritten());
-            for (var read : loc.instr.getRead()) {
-                if (!bb.def.contains(read)) {
-                    // used before being assigned to a value
                     bb.liveUse.add(read);
                 }
             }
         }
     }
 
-    /**
-     * Perform liveness analysis for every single location in a basic block, so that we know at each program location,
-     * which variables stay alive.
-     * <p>
      * Idea: realizing that every location loc can be regarded as a "mini" basic block -- a block containing that
      * instruction solely, then the data flow equations also hold, and the situation becomes much simpler:
      * - loc.liveOut = loc.next.liveIn

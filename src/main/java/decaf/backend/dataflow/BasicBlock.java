@@ -114,4 +114,3 @@ public class BasicBlock<I extends PseudoInstr> implements Iterable<Loc<I>> {
     public Set<AnalysisInfo> gen;
 
     public Set<AnalysisInfo> kill;
-}

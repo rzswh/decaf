@@ -14,8 +14,3 @@ public class Loc<I extends PseudoInstr> {
     public Set<Temp> liveOut;
     public Set<AnalysisInfo> in;
     public Set<AnalysisInfo> out;
-
-    Loc(I instr) {
-        this.instr = instr;
-    }
-}

@@ -10,7 +10,6 @@ import java.util.*;
  * encoding.
  */
 public class ProgramWriter {
-
     /**
      * Constructor.
      *

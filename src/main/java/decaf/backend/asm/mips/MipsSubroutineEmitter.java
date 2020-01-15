@@ -25,15 +25,6 @@ import java.util.TreeMap;
  * SP + 4n + 36   : local data 0
  * SP + 4n + 32   : ($RA)
  * SP + 4n + 28   : ($S7)
- *               ...
- * SP + 4n + 0    : ($S0)
- * SP + 4(n - 1)  : arg n - 1
- *               ...
- * SP + 16        : arg 4
- *               ...
- * SP             : (arg 0)
- * </pre>
- * <p>
  * The parenthesized slots may not be used, but to make our life easier, we always reserve them.
  */
 public class MipsSubroutineEmitter extends SubroutineEmitter {
@@ -49,11 +40,7 @@ public class MipsSubroutineEmitter extends SubroutineEmitter {
         if (!offsets.containsKey(src.temp)) {
             if (src.temp.index < info.numArg) { // Always map arg `i` to `SP + 4 * i`.
                 offsets.put(src.temp, 4 * src.temp.index);
-            } else {
-                offsets.put(src.temp, nextLocalOffset);
-                nextLocalOffset += 4;
-            }
-        }
+        nextLocalOffset = info.argsSize + 36;
 
         buf.add(new Mips.NativeStoreWord(src, Mips.SP, offsets.get(src.temp)));
     }
@@ -106,19 +93,14 @@ public class MipsSubroutineEmitter extends SubroutineEmitter {
         for (var i = 0; i < Mips.calleeSaved.length; i++) {
             if (Mips.calleeSaved[i].isUsed()) {
                 printer.printInstr(new Mips.NativeStoreWord(Mips.calleeSaved[i], Mips.SP, info.argsSize + 4 * i),
-                        "save value of $S" + i);
-            }
+        // move arguments in stacks
+        int offset = nextLocalOffset - info.numArg * 4;
+        for (int i = 4; i < info.numArg; i++) {
+            printer.printInstr(new Mips.NativeLoadWord(Mips.T0, Mips.SP, i * 4 + offset));
+            printer.printInstr(new Mips.NativeStoreWord(Mips.T0, Mips.SP, i * 4));
         }
-        printer.printComment("end of prologue");
-        printer.println();
-
-        printer.printComment("start of body");
-        for (var i = 0; i < Math.min(info.numArg, 4); i++) {
-            printer.printInstr(new Mips.NativeStoreWord(Mips.argRegs[i], Mips.SP, 4 * i),
-                    "save arg " + i);
-        }
-        for (var instr : buf) {
-            printer.printInstr(instr);
+        if (Mips.RA.isUsed() || info.hasCalls) {
+            printer.printInstr(new Mips.NativeStoreWord(Mips.RA, Mips.SP, info.argsSize + 32),
         }
         printer.printComment("end of body");
         printer.println();
@@ -131,21 +113,9 @@ public class MipsSubroutineEmitter extends SubroutineEmitter {
                         "restore value of $S" + i);
             }
         }
-        if (Mips.RA.isUsed() || info.hasCalls) {
-            printer.printInstr(new Mips.NativeLoadWord(Mips.RA, Mips.SP, info.argsSize + 32),
-                    "restore the return address");
+        for (var i = 0; i < Math.min(info.numArg, 4); i++) {
+            printer.printInstr(new Mips.NativeStoreWord(Mips.argRegs[i], Mips.SP, 4 * i),
+                    "save arg " + i);
         }
-        printer.printInstr(new Mips.SPAdd(nextLocalOffset), "pop stack frame");
-        printer.printComment("end of epilogue");
-        printer.println();
-
-        printer.printInstr(new Mips.NativeReturn(), "return");
-        printer.println();
-    }
-
-    private List<NativeInstr> buf = new ArrayList<>();
-
-    private int nextLocalOffset;
-
-    private Map<Temp, Integer> offsets = new TreeMap<>();
 }
+            printer.printInstr(new Mips.NativeLoadWord(Mips.RA, Mips.SP, info.argsSize + 32),

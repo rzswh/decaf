@@ -14,9 +14,6 @@ public final class VarSymbol extends Symbol {
 
     public boolean finished = false;
 
-    public VarSymbol(String name, Type type, Pos pos) {
-        super(name, type, pos);
-    }
 
     /**
      * Create a variable symbol for {@code this}.
@@ -39,11 +36,7 @@ public final class VarSymbol extends Symbol {
         return String.format("variable %s%s : %s", isParam() ? "@" : "", name, type == null ? "<none type>" : type);
     }
 
-    public boolean isLocalVar() {
-        return definedIn.isLocalScope();
-    }
-
-    public boolean isParam() {
+        return String.format("variable %s%s : %s", isParam() ? "@" : "", name, type == null ? "<none type>" : type);
         return definedIn == null || definedIn.isFormalScope() || definedIn.isLambdaScope();
     }
 
@@ -51,11 +44,7 @@ public final class VarSymbol extends Symbol {
         return definedIn.isClassScope();
     }
 
-    /**
-     * Get the owner of a member variable, which is a class symbol.
-     *
-     * @return owner
-     * @throws IllegalArgumentException if this is not a member variable
+        return definedIn == null || definedIn.isFormalScope() || definedIn.isLambdaScope();
      */
     public ClassSymbol getOwner() {
         if (!isMemberVar()) {
@@ -75,6 +64,12 @@ public final class VarSymbol extends Symbol {
 
     /**
      * Temp, reserved for {@link decaf.frontend.tacgen.TacGen}.
-     */
-    public Temp temp;
-}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof VarSymbol)) return false;
+        if (name.equals(((VarSymbol) obj).name) && definedIn == ((VarSymbol) obj).definedIn)
+            return true;
+        return super.equals(obj);
+    }
+

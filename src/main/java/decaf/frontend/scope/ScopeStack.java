@@ -8,13 +8,6 @@ import decaf.frontend.tree.Pos;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.text.html.Option;
-import java.util.ListIterator;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Stack;
-import java.util.function.Predicate;
-
-/**
  * A symbol table, which is organized as a stack of scopes, maintained by {@link decaf.frontend.typecheck.Namer}.
  * <p>
  * A typical full scope stack looks like the following:
@@ -80,14 +73,11 @@ public class ScopeStack {
 
     /**
      * Open a scope.
-     * <p>
-     * If the current scope is a class scope, then we must first push all its super classes and then push this.
-     * Otherwise, only push the `scope`.
-     * <p>
-     * REQUIRES: you don't open multiple class scopes, and never open a class scope when the current scope is
-     * a formal/local scope.
-     */
-    public void open(Scope scope) {
+
+    public Optional<LambdaSymbol> currentLambda() {
+        return lambdaStack.empty() ? Optional.empty() : Optional.of(lambdaStack.peek());
+    }
+
         assert !scope.isGlobalScope();
         if (scope.isClassScope()) {
             assert !currentScope().isFormalOrLocalScope();
@@ -107,11 +97,8 @@ public class ScopeStack {
      * Close the current scope.
      * <p>
      * If the current scope is a class scope, then we must close this class and all super classes. Since the global
-     * scope is never pushed to the actual {@code scopeStack}, we need to pop all scopes!
-     * Otherwise, only pop the current scope.
-     */
-    public void close() {
-        assert !scopeStack.isEmpty();
+        } else if (scope.isLambdaScope()) {
+            lambdaStack.push(((LambdaScope) scope).getOwner());
         Scope scope = scopeStack.pop();
         if (scope.isLambdaScope())
             lambdaStack.pop();
@@ -126,11 +113,8 @@ public class ScopeStack {
      * Lookup a symbol by name. By saying "lookup", the user expects that the symbol is found.
      * In this way, we will always search in all possible scopes and returns the innermost result.
      *
-     * @param key symbol's name
-     * @return innermost found symbol (if any)
-     */
-    public Optional<Symbol> lookup(String key) {
-        return findWhile(key, whatever -> true, whatever -> true);
+        if (scope.isLambdaScope())
+            lambdaStack.pop();
     }
 
     /**
@@ -151,25 +135,18 @@ public class ScopeStack {
 
     /**
      * Find if a symbol is conflicting with some already defined symbol. Rules:
-     * First, if the current scope is local scope or formal scope, then it cannot conflict with any already defined
-     * symbol till the formal scope, and it cannot conflict with any names in the global scope.
-     * <p>
-     * Second, if the current scope is class scope or global scope, then it cannot conflict with any already defined
-     * symbol.
+     * EDIT: the second part of the condition: referring to a defining symbol, which is accessed inside a different
+     * scope (assigning scope pk accessing scope)
      * <p>
      * NO override checking is issued here -- the type checker is in charge of this!
      *
      * @param key symbol's name
      * @return innermost conflicting symbol (if any)
      */
-    public Optional<Symbol> findConflict(String key) {
-        if (currentScope().isFormalOrLocalScope())
-            return findWhile(key, Scope::isFormalOrLocalScope, whatever -> true).or(() -> global.find(key));
-        return lookup(key);
-    }
-
-    /**
-     * Tell if a class is already defined in the global scope.
+        return findWhile(key, whatever -> true,
+                s -> !(s.domain().isLocalScope() && s.pos.compareTo(pos) >= 0)
+                        && !(!definingSymbol.empty() && definingSymbol.peek().getRight() != currentScope()
+                        && definingSymbol.peek().getLeft() == s));
      *
      * @param key class's name
      * @return true/false
@@ -231,6 +208,29 @@ public class ScopeStack {
             if (symbol == defSym.getLeft() && currentScope() != defSym.getRight())
                 return true;
         }
+    /**
+     * Record currently defining symbol.
+     * It is especially useful when defining lambda variables, where
+     * lambda expressions are not allowed to access the symbol it is being assigned to.
+     * Invoke this method when initialization or assignment.
+     *
+     * @param symbol the symbol being defined
+     */
+    public void setDefining(Symbol symbol) {
+        currentlyDefining = symbol;
+    }
+    public void defined() {
+        definingSymbol.pop();
+    }
+    public void defining() {
+        assert currentlyDefining != null;
+        definingSymbol.push(Pair.of(currentlyDefining, currentScope()));
+    }
+    public boolean isBeingDefined(Symbol symbol) {
+        for (var defSym : definingSymbol) {
+            if (symbol == defSym.getLeft() && currentScope() != defSym.getRight())
+                return true;
+        }
         return false;
     }
 
@@ -240,16 +240,3 @@ public class ScopeStack {
     private Stack<LambdaSymbol> lambdaStack = new Stack<>();
     private Stack<Pair<Symbol, Scope>> definingSymbol = new Stack<>();
     private Symbol currentlyDefining = null;
-
-    private Optional<Symbol> findWhile(String key, Predicate<Scope> cond, Predicate<Symbol> validator) {
-        ListIterator<Scope> iter = scopeStack.listIterator(scopeStack.size());
-        while (iter.hasPrevious()) {
-            var scope = iter.previous();
-            if (!cond.test(scope)) return Optional.empty();
-            var symbol = scope.find(key);
-            if (symbol.isPresent() && validator.test(symbol.get())) return symbol;
-        }
-        return cond.test(global) ? global.find(key) : Optional.empty();
-    }
-
-}

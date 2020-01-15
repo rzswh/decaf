@@ -1063,7 +1063,6 @@ public abstract class Tree {
      * Left value, i.e. an expression that can be assigned to a value.
      */
     public static abstract class LValue extends Expr {
-
         public LValue(Kind kind, String displayName, Pos pos) {
             super(kind, displayName, pos);
         }

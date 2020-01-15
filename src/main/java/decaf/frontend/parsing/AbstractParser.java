@@ -146,9 +146,6 @@ abstract class AbstractParser {
         return v;
     }
 
-    protected SemValue svStmt(Tree.Stmt stmt) {
-        var v = new SemValue(SemValue.Kind.STMT, stmt == null ? Pos.NoPos : stmt.pos);
-        v.stmt = stmt;
         return v;
     }
 

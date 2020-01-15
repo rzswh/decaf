@@ -24,18 +24,18 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-/**
- * TAC optimization phase: optimize a TAC program.
- * <p>
- * The original decaf compiler has NO optimization, thus, we implement the transformation as identity function.
- */
-public class Optimizer extends Phase<TacProg, TacProg> {
-    public Optimizer(Config config) {
-        super("optimizer", config);
-    }
-
     @Override
     public TacProg transform(TacProg input) {
+        input = optCopy(input);
+        return optDeadCode(input);//input; //
+    }
+
+    public TacProg optCopy(TacProg input) {
+        var analyzer = new CopyAnalysis<TacInstr>();
+        boolean finished;
+        do {
+            finished = true;
+            for (var f : input.funcs) {
         input = optCopy(input);
         return optDeadCode(input);//input; //
     }
@@ -154,19 +154,6 @@ public class Optimizer extends Phase<TacProg, TacProg> {
                 Log.ifLoggable(Level.FINE, printer -> new PrettyCFG<TacInstr>(printer).pretty(cfg));
             }
         } while (!finished);
-        return input;
-    }
-
-    @Override
-    public void onSucceed(TacProg program) {
-        if (config.target.equals(Config.Target.PA4)) {
-            // First dump the tac program to file,
-            var path = config.dstPath.resolve(config.getSourceBaseName() + ".tac");
-            try {
-                var printer = new PrintWriter(path.toFile());
-                program.printTo(printer);
-                printer.close();
-            } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
 
@@ -178,3 +165,6 @@ public class Optimizer extends Phase<TacProg, TacProg> {
         }
     }
 }
+            int numExe = simulator.execute(program);
+            // print num
+            Log.info("Number of executed sentences: " + numExe);

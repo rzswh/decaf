@@ -68,11 +68,6 @@ public final class MipsAsmEmitter extends AsmEmitter {
         }
 
         var info = new SubroutineInfo(func.entry, func.numArgs, selector.hasCall, selector.maxArgs * 4);
-        return Pair.of(selector.seq, info);
-    }
-
-    @Override
-    public void emitSubroutineBegin() {
         printer.println(".text");
     }
 
@@ -285,13 +280,9 @@ public final class MipsAsmEmitter extends AsmEmitter {
                 seq.add(new Mips.StoreWord(instr.value, Mips.SP, argCount * 4 - (instr.numParms * 4)));
             }
             argCount++;
-        }
-
-        @Override
-        public void visitIndirectCall(TacInstr.IndirectCall instr) {
-            hasCall = true;
-
-            callerSave();
+                // System.out.println(- (36 + instr.numParms * 4));
+                // temporarily saved at the high address of next stack frame
+                seq.add(new Mips.StoreWord(instr.value, Mips.SP, argCount * 4 - (instr.numParms * 4)));
             seq.add(new Mips.JumpAndLinkReg(instr.entry));
             callerRestore();
 

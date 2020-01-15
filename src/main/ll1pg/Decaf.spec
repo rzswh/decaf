@@ -331,7 +331,6 @@ ExprOpt         :   Expr
                     }
                 ;
 
-
 // Operators
 
 Op1             :   OR

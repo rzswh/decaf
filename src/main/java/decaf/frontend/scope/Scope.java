@@ -24,10 +24,6 @@ public abstract class Scope implements Iterable<Symbol> {
 
     public enum Kind {
         GLOBAL, CLASS, FORMAL, LOCAL, LAMBDA
-    }
-
-    public final Kind kind;
-
     public Scope(Kind kind) {
         this.kind = kind;
     }
@@ -103,13 +99,13 @@ public abstract class Scope implements Iterable<Symbol> {
         return false;
     }
 
+    public boolean isLambdaScope() {
+        return false;
+    }
+
     public boolean isFormalOrLocalScope() {
         return isFormalScope() || isLocalScope() || isLambdaScope();
     }
 
     public boolean isFormalOrLocalOrLambdaScope() {
         return isFormalScope() || isLocalScope() || isLambdaScope();
-    }
-
-    protected Map<String, Symbol> symbols = new TreeMap<>();
-}

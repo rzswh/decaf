@@ -20,10 +20,10 @@ import java.util.Optional;
 %token IF           ELSE        RETURN      BREAK       NEW
 %token PRINT        READ_INTEGER            READ_LINE
 %token BOOL_LIT     INT_LIT     STRING_LIT  ABSTRACT
-%token IDENTIFIER   AND         OR          STATIC      INSTANCE_OF
-%token LESS_EQUAL   GREATER_EQUAL           EQUAL       NOT_EQUAL
-%token '+'  '-'  '*'  '/'  '%'  '='  '>'  '<'  '.'
-%token ','  ';'  '!'  '('  ')'  '['  ']'  '{'  '}'
+%token DOUBLE_ARROW FUN         VAR
+
+%nonassoc DOUBLE_ARROW
+%left OR
 %token DOUBLE_ARROW FUN         VAR
 
 %nonassoc DOUBLE_ARROW
@@ -34,36 +34,6 @@ import java.util.Optional;
 %left  '+' '-'
 %left  '*' '/' '%'
 %nonassoc UMINUS '!'
-%nonassoc '[' '.'
-%nonassoc ')' EMPTY
-%nonassoc ELSE
-
-%start TopLevel
-
-%%
-
-// Warning: never do `$$.xxx = ???` until reassignment, e.g. `$$ = $1`.
-// Why? Because the time when we enter the action code you write, `$$` may currently points to some semValue you have
-// already created. If you do `$$.expr = some expression`, then the previously created semValue is also modified!
-// To avoid any potential bugs, you must reassign `$$` to a value that you know well (e.g. `$1`),
-// before overwrite its members.
-
-// A group of helper methods with prefix `sv` are provided in `SemValue`, go ahead and use them!
-
-// Classes and fields
-
-TopLevel        :   ClassList
-                    {
-                        tree = new TopLevel($1.classList, $1.pos);
-                    }
-                ;
-
-ClassList       :   ClassList ClassDef
-                    {
-                        $$ = $1;
-                        $$.classList.add($2.clazz);
-                    }
-                |   ClassDef
                     {
                         $$ = svClasses($1.clazz);
                     }
@@ -86,15 +56,11 @@ ExtendsClause   :   EXTENDS Id
                 |   /* empty */
                     {
                         $$ = svId(null);
+                        $$ = svClass(new ClassDef(false, $2.id, Optional.ofNullable($3.id), $5.fieldList, $1.pos));
                     }
-                ;
-
-FieldList       :   FieldList Var ';'
+                |   ABSTRACT CLASS Id ExtendsClause '{' FieldList '}'
                     {
-                        $$ = $1;
-                        $$.fieldList.add(new VarDef($2.type, $2.id, $2.pos));
-                    }
-                |   FieldList MethodDef
+                        $$ = svClass(new ClassDef(true, $3.id, Optional.ofNullable($4.id), $6.fieldList, $2.pos));
                     {
                         $$ = $1;
                         $$.fieldList.add($2.field);
@@ -105,15 +71,11 @@ FieldList       :   FieldList Var ';'
                     }
                 ;
 
-Var             :   Type Id
-                    {
-                        $$ = svVar($1.type, $2.id, $2.pos);
+                        $$ = svClass(new ClassDef(false, $2.id, Optional.ofNullable($3.id), $5.fieldList, $1.pos));
                     }
-                ;
-
-MethodDef       :   ABSTRACT Type Id '(' VarList ')' ';'
+                |   ABSTRACT CLASS Id ExtendsClause '{' FieldList '}'
                     {
-                        $$ = svField(new MethodDef(true, false, $3.id, $2.type, $5.varList, null, $3.pos));
+                        $$ = svClass(new ClassDef(true, $3.id, Optional.ofNullable($4.id), $6.fieldList, $2.pos));
                     }
                 |   STATIC Type Id '(' VarList ')' Block
                     {
@@ -130,27 +92,17 @@ VarList         :   VarList1
                         $$ = $1;
                     }
                 |   /* empty */
+MethodDef       :   ABSTRACT Type Id '(' VarList ')' ';'
                     {
-                        $$ = svVars();
+                        $$ = svField(new MethodDef(true, false, $3.id, $2.type, $5.varList, null, $3.pos));
                     }
-                ;
-
-VarList1        :   VarList1 ',' Var
+                |   STATIC Type Id '(' VarList ')' Block
                     {
-                        $$ = $1;
-                        $$.varList.add(new LocalVarDef($3.type, $3.id, $3.pos));
+                        $$ = svField(new MethodDef(false, true, $3.id, $2.type, $5.varList, $7.block, $3.pos));
                     }
-                |   Var
+                |   Type Id '(' VarList ')' Block
                     {
-                        $$ = svVars(new LocalVarDef($1.type, $1.id, $1.pos));
-                    }
-                ;
-
-// Types
-
-Type            :   INT
-                    {
-                        $$ = svType(new TInt($1.pos));
+                        $$ = svField(new MethodDef(false, false, $2.id, $1.type, $4.varList, $6.block, $2.pos));
                     }
                 |   BOOL
                     {
@@ -159,27 +111,17 @@ Type            :   INT
                 |   STRING
                     {
                         $$ = svType(new TString($1.pos));
-                    }
-                |   VOID
+MethodDef       :   ABSTRACT Type Id '(' VarList ')' ';'
                     {
-                        $$ = svType(new TVoid($1.pos));
+                        $$ = svField(new MethodDef(true, false, $3.id, $2.type, $5.varList, null, $3.pos));
                     }
-                |   CLASS Id
+                |   STATIC Type Id '(' VarList ')' Block
                     {
-                        $$ = svType(new TClass($2.id, $1.pos));
+                        $$ = svField(new MethodDef(false, true, $3.id, $2.type, $5.varList, $7.block, $3.pos));
                     }
-                |   Type '[' ']'
+                |   Type Id '(' VarList ')' Block
                     {
-                        $$ = svType(new TArray($1.type, $1.type.pos));
-                    }
-                |   Type '(' TypeList ')'
-                    {
-                        $$ = svType(new TLambda($1.type, $3.typeList, $1.type.pos));
-                    }
-                ;
-
-TypeList        :   Type
-                    {
+                        $$ = svField(new MethodDef(false, false, $2.id, $1.type, $4.varList, $6.block, $2.pos));
                         $$ = svTypes($1.type);
                     }
                 |   TypeList ',' Type
@@ -201,28 +143,25 @@ Stmt            :   Block
                     }
                 |   SimpleStmt ';'
                     {
-                        if ($1.stmt == null) {
-                            $$ = svStmt(new Skip($2.pos));
-                        } else {
-                            $$ = $1;
-                        }
-                    }
-                |   IF '(' Expr ')' Stmt ElseClause
+                |   Type '(' TypeList ')'
                     {
-                        $$ = svStmt(new If($3.expr, $5.stmt, Optional.ofNullable($6.stmt), $1.pos));
+                        $$ = svType(new TLambda($1.type, $3.typeList, $1.type.pos));
                     }
-                |   WHILE '(' Expr ')' Stmt
+                ;
+
+TypeList        :   Type
                     {
-                        $$ = svStmt(new While($3.expr, $5.stmt, $1.pos));
+                        $$ = svTypes($1.type);
                     }
-                |   FOR '(' SimpleStmt ';' Expr ';' SimpleStmt ')' Stmt
+                |   TypeList ',' Type
                     {
-                        if ($3.stmt == null) $3.stmt = new Skip($4.pos);
-                        if ($7.stmt == null) $7.stmt = new Skip($8.pos);
-                        $$ = svStmt(new For($3.stmt, $5.expr, $7.stmt, $9.stmt, $1.pos));
+                        $$ = $1;
+                        $1.typeList.add($3.type);
                     }
-                |   BREAK ';'
+                |   /* empty */
                     {
+                        $$ = svTypes();
+                    }
                         $$ = svStmt(new Break($1.pos));
                     }
                 |   RETURN ExprOpt ';'
@@ -233,28 +172,25 @@ Stmt            :   Block
                     {
                         $$ = svStmt(new Print($3.exprList, $1.pos));
                     }
-                ;
-
-Block           :   '{' StmtList '}'
+                |   Type '(' TypeList ')'
                     {
-                        $$ = svBlock(new Block($2.stmtList, $1.pos));
+                        $$ = svType(new TLambda($1.type, $3.typeList, $1.type.pos));
                     }
                 ;
 
-StmtList        :   StmtList Stmt
+TypeList        :   Type
+                    {
+                        $$ = svTypes($1.type);
+                    }
+                |   TypeList ',' Type
                     {
                         $$ = $1;
-                        $$.stmtList.add($2.stmt);
+                        $1.typeList.add($3.type);
                     }
                 |   /* empty */
                     {
-                        $$ = svStmts();
+                        $$ = svTypes();
                     }
-                ;
-
-SimpleStmt      :   Var Initializer
-                    {
-                        $$ = svStmt(new LocalVarDef($1.type, $1.id, $2.pos, Optional.ofNullable($2.expr), $1.pos));
                     }
                 |   LValue '=' Expr
                     {
@@ -300,13 +236,10 @@ ExprOpt         :   Expr
                         $$ = $1;
                     }
                 |   /* empty */
+                |   VAR Id '=' Expr
                     {
-                        $$ = svExpr(null);
+                        $$ = svStmt(new LocalVarDef(null, $2.id, $3.pos, Optional.ofNullable($4.expr), $2.pos));
                     }
-                ;
-
-// Expressions
-
 Expr            :   Literal
                     {
                         $$ = $1;
@@ -335,13 +268,10 @@ Expr            :   Literal
                     {
                         $$ = svExpr(new Binary(BinaryOp.DIV, $1.expr, $3.expr, $2.pos));
                     }
-                |   Expr '%' Expr
+                |   VAR Id '=' Expr
                     {
-                        $$ = svExpr(new Binary(BinaryOp.MOD, $1.expr, $3.expr, $2.pos));
+                        $$ = svStmt(new LocalVarDef(null, $2.id, $3.pos, Optional.ofNullable($4.expr), $2.pos));
                     }
-                |   Expr EQUAL Expr
-                    {
-                        $$ = svExpr(new Binary(BinaryOp.EQ, $1.expr, $3.expr, $2.pos));
                     }
                 |   Expr NOT_EQUAL Expr
                     {
@@ -354,13 +284,6 @@ Expr            :   Literal
                 |   Expr '>' Expr
                     {
                         $$ = svExpr(new Binary(BinaryOp.GT, $1.expr, $3.expr, $2.pos));
-                    }
-                |   Expr LESS_EQUAL Expr
-                    {
-                        $$ = svExpr(new Binary(BinaryOp.LE, $1.expr, $3.expr, $2.pos));
-                    }
-                |   Expr GREATER_EQUAL Expr
-                    {
                         $$ = svExpr(new Binary(BinaryOp.GE, $1.expr, $3.expr, $2.pos));
                     }
                 |   Expr AND Expr
@@ -396,13 +319,6 @@ Expr            :   Literal
                         $$ = svExpr(new NewClass($2.id, $1.pos));
                     }
                 |   NEW Type '[' Expr ']'
-                    {
-                        $$ = svExpr(new NewArray($2.type, $4.expr, $1.pos));
-                    }
-                |   INSTANCE_OF '(' Expr ',' Id ')'
-                    {
-                        $$ = svExpr(new ClassTest($3.expr, $5.id, $1.pos));
-                    }
                 |   '(' CLASS Id ')' Expr
                     {
                         $$ = svExpr(new ClassCast($5.expr, $3.id, $5.expr.pos));
@@ -445,33 +361,26 @@ Literal         :   INT_LIT
 
 LValue          :   Receiver Id
                     {
-                        $$ = svLValue(new VarSel(Optional.ofNullable($1.expr), $2.id, $2.pos));
-                    }
-                |   Expr '[' Expr ']'
+                |   '(' CLASS Id ')' Expr
                     {
-                        $$ = svLValue(new IndexSel($1.expr, $3.expr, $2.pos));
+                        $$ = svExpr(new ClassCast($5.expr, $3.id, $5.expr.pos));
                     }
-                ;
-
-Receiver        :   Expr '.'
+                |   FUN '(' VarList ')' DOUBLE_ARROW Expr
                     {
-                        $$ = $1;
+                        $$ = svExpr(new LambdaExpr($3.varList, $6.expr, $1.pos));
                     }
-                |   /* empty */
+                |   FUN '(' VarList ')' Block
                     {
-                        $$ = svExpr(null);
+                        $$ = svExpr(new LambdaBlock($3.varList, $5.block, $1.pos));
                     }
-                ;
-
-ExprList        :   ExprList1
+                |   Receiver Id
                     {
-                        $$ = $1;
+                        $$ = svExpr(new VarSel(Optional.ofNullable($1.expr), $2.id, $2.pos));
                     }
-                |   /* empty */
+                |   Expr '(' ExprList ')'
                     {
-                        $$ = svExprs();
+                        $$ = svExpr(new Call($1.expr, $3.exprList, $2.pos));
                     }
-                ;
 
 ExprList1       :   ExprList1 ',' Expr
                     {
@@ -493,3 +402,23 @@ Id              :   IDENTIFIER
                 ;
 
 %%
+                |   '(' CLASS Id ')' Expr
+                    {
+                        $$ = svExpr(new ClassCast($5.expr, $3.id, $5.expr.pos));
+                    }
+                |   FUN '(' VarList ')' DOUBLE_ARROW Expr
+                    {
+                        $$ = svExpr(new LambdaExpr($3.varList, $6.expr, $1.pos));
+                    }
+                |   FUN '(' VarList ')' Block
+                    {
+                        $$ = svExpr(new LambdaBlock($3.varList, $5.block, $1.pos));
+                    }
+                |   Receiver Id
+                    {
+                        $$ = svExpr(new VarSel(Optional.ofNullable($1.expr), $2.id, $2.pos));
+                    }
+                |   Expr '(' ExprList ')'
+                    {
+                        $$ = svExpr(new Call($1.expr, $3.exprList, $2.pos));
+                    }

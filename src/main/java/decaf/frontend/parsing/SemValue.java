@@ -15,10 +15,6 @@ import java.util.List;
 class SemValue {
     enum Kind {
         TOKEN, CLASS, CLASS_LIST, FIELD, FIELD_LIST, VAR, VAR_LIST, TYPE, TYPE_LIST, STMT, STMT_LIST, BLOCK, EXPR, EXPR_LIST,
-        LVALUE, ID, TEMPORARY
-    }
-
-    /**
      * Which kind of tree node is this?
      */
     final Kind kind;
@@ -86,10 +82,7 @@ class SemValue {
 
     Tree.Stmt stmt;
     List<Tree.Stmt> stmtList;
-    Tree.Block block;
-
-    Tree.Expr expr;
-    List<Tree.Expr> exprList;
+    List<Tree.TypeLit> typeList;
     Tree.LValue lValue;
 
     Tree.Id id;
@@ -116,10 +109,7 @@ class SemValue {
                 case Tokens.PRINT -> "keyword  : Print";
                 case Tokens.READ_INTEGER -> "keyword  : ReadInteger";
                 case Tokens.READ_LINE -> "keyword  : ReadLine";
-                case Tokens.RETURN -> "keyword  : return";
-                case Tokens.STRING -> "keyword  : string";
-                case Tokens.THIS -> "keyword  : this";
-                case Tokens.VOID -> "keyword  : void";
+                case Tokens.VAR -> "keyword  : var";
                 case Tokens.WHILE -> "keyword  : while";
                 case Tokens.STATIC -> "keyword : static";
                 case Tokens.ABSTRACT -> "keyword : abstract";
@@ -132,11 +122,8 @@ class SemValue {
                 case Tokens.EQUAL -> "operator : ==";
                 case Tokens.GREATER_EQUAL -> "operator : >=";
                 case Tokens.LESS_EQUAL -> "operator : <=";
-                case Tokens.NOT_EQUAL -> "operator : !=";
-                case Tokens.OR -> "operator : ||";
-                case Tokens.DOUBLE_ARROW -> "operator : =>";
-                default -> "operator : " + (char) code;
-            };
+                case Tokens.ABSTRACT -> "keyword : abstract";
+                case Tokens.FUN -> "keyword : fun";
             case CLASS -> "CLASS: " + clazz;
             case CLASS_LIST -> "CLASS_LIST: " + classList;
             case FIELD -> "FIELD: " + field;
@@ -147,10 +134,7 @@ class SemValue {
             case TYPE_LIST -> "TYPE: " + typeList;
             case STMT -> "STMT: " + stmt;
             case STMT_LIST -> "STMT_LIST: " + stmtList;
-            case BLOCK -> "BLOCK: " + block;
-            case EXPR -> "EXPR: " + expr;
-            case EXPR_LIST -> "EXPR_LIST: " + exprList;
-            case LVALUE -> "LVALUE: " + lValue;
+                case Tokens.DOUBLE_ARROW -> "operator : =>";
             case ID -> "ID: " + id;
             case TEMPORARY -> "TEMPORARY";
         };
@@ -160,10 +144,7 @@ class SemValue {
     /**
      * A template to write a semantic action in jacc. Given a production of the form
      * <pre>
-     *     A : B C D E F G
-     * </pre>
-     * {@code $$} stands for the SemValue associated with the left-hand side, i.e. the nonterminal A.
-     * {@code $1} -- {@code $6} stand for the SemValue associated with the right-hand side, i.e. B, C, ..., G,
+            case TYPE_LIST -> "TYPE: " + typeList;
      * respectively.
      * <p>
      * If you believe that you can write 100% correct Java code in plain text, then don't care about this.
